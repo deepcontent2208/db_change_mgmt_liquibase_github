@@ -1,0 +1,92 @@
+name: PostgreSQL Database Rollback (Liquibase Rollback CD)
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - qa
+          - prod
+      
+      rollback_tag:
+        description: 'Enter the target tag to rollback to (e.g., "v1.0"). It is case sensitive.'
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: [self-hosted]
+
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Auto populate database connection parameters
+        id: get-credentials
+        run: |
+          ENV_NAME_UPPER=$(echo "${{ github.event.inputs.environment }}" | tr '[:lower:]' '[:upper:]')
+          
+          case "$ENV_NAME_UPPER" in
+            DEV)
+              echo "db_host=${{ secrets.DEV_DB_HOST }}" >> $GITHUB_OUTPUT
+              echo "db_name=${{ secrets.DEV_DB_NAME }}" >> $GITHUB_OUTPUT
+              echo "db_user=${{ secrets.DEV_DB_USER }}" >> $GITHUB_OUTPUT
+              echo "db_pass=${{ secrets.DEV_DB_PASSWORD }}" >> $GITHUB_OUTPUT
+              ;;
+            QA)
+              echo "db_host=${{ secrets.QA_DB_HOST }}" >> $GITHUB_OUTPUT
+              echo "db_name=${{ secrets.QA_DB_NAME }}" >> $GITHUB_OUTPUT
+              echo "db_user=${{ secrets.QA_DB_USER }}" >> $GITHUB_OUTPUT
+              echo "db_pass=${{ secrets.QA_DB_PASSWORD }}" >> $GITHUB_OUTPUT
+              ;;
+            PROD)
+              echo "db_host=${{ secrets.PROD_DB_HOST }}" >> $GITHUB_OUTPUT
+              echo "db_name=${{ secrets.PROD_DB_NAME }}" >> $GITHUB_OUTPUT
+              echo "db_user=${{ secrets.PROD_DB_USER }}" >> $GITHUB_OUTPUT
+              echo "db_pass=${{ secrets.PROD_DB_PASSWORD }}" >> $GITHUB_OUTPUT
+              ;;
+          esac
+          
+      - name: Verify Database Connection Details
+        run: |
+          echo "Target environment: ${{ github.event.inputs.environment }}"
+
+      - name: Setup Liquibase
+        uses: liquibase/setup-liquibase@v3
+        with: 
+          version: '4.33.0'
+          edition: "community"
+
+      - name: Check Liquibase Changes Log Validity (liquibase validate Command)
+        run: |
+          liquibase validate \
+            --changelog-file=changelog/db.changelog.sql \
+            --url=""jdbc:postgresql://${{ steps.get-credentials.outputs.db_host }}:5432/${{ steps.get-credentials.outputs.db_name }}"" \
+            --username="${{ steps.get-credentials.outputs.db_user }}" \
+            --password="${{ steps.get-credentials.outputs.db_pass }}"
+      
+      - name: Database Pre-check (liquibase validate Command)
+        run: | 
+          liquibase status --verbose \
+            --changelog-file=changelog/db.changelog.sql \
+            --url="jdbc:postgresql://${{ steps.get-credentials.outputs.db_host }}:5432/${{ steps.get-credentials.outputs.db_name }}" \
+            --username="${{ steps.get-credentials.outputs.db_user }}" \
+            --password="${{ steps.get-credentials.outputs.db_pass }}"
+        
+      - name: Apply Database Rollback (liquibase rollback Command)
+        run: |
+          liquibase rollback \
+            --changelog-file=changelog/db.changelog.sql \
+            --url="jdbc:postgresql://${{ steps.get-credentials.outputs.db_host }}:5432/${{ steps.get-credentials.outputs.db_name }}" \
+            --username="${{ steps.get-credentials.outputs.db_user }}" \
+            --password="${{ steps.get-credentials.outputs.db_pass }}" \
+            --tag="${{ github.event.inputs.rollback_tag }}"
+
+           
