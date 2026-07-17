@@ -134,6 +134,7 @@ ALTER TABLE products DROP COLUMN offer_4;
 --rollback ALTER TABLE products ADD COLUMN offer_4;
 
 --changeset deep:5
+--comment: Change data type in orders table.
 ALTER TABLE orders
 ALTER COLUMN order_date TYPE timestamp;
 
