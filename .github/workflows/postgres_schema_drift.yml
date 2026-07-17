@@ -1,0 +1,116 @@
+name: PostgreSQL Database Schema Drift (Liquibase CI)
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment_src:
+        description: "Baseline environment"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - qa
+          - prod
+      
+      environment_tgt:
+        description: "Comparing environment"
+        required: true
+        default: "qa"
+        type: choice
+        options:
+          - dev
+          - qa
+          - prod
+
+jobs:
+  deploy:
+    runs-on: [self-hosted]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Auto populate database connection parameters
+        id: get-credentials
+        run: |
+          SRC_ENV_NAME_UPPER=$(echo "${{ github.event.inputs.environment_src }}" | tr '[:lower:]' '[:upper:]')
+          
+          case "$SRC_ENV_NAME_UPPER" in
+            DEV)
+              echo "src_db_host=${{ secrets.DEV_DB_HOST }}" >> $GITHUB_OUTPUT
+              echo "src_db_name=${{ secrets.DEV_DB_NAME }}" >> $GITHUB_OUTPUT
+              echo "src_db_user=${{ secrets.DEV_DB_USER }}" >> $GITHUB_OUTPUT
+              echo "src_db_pass=${{ secrets.DEV_DB_PASSWORD }}" >> $GITHUB_OUTPUT
+              ;;
+            QA)
+              echo "src_db_host=${{ secrets.QA_DB_HOST }}" >> $GITHUB_OUTPUT
+              echo "src_db_name=${{ secrets.QA_DB_NAME }}" >> $GITHUB_OUTPUT
+              echo "src_db_user=${{ secrets.QA_DB_USER }}" >> $GITHUB_OUTPUT
+              echo "src_db_pass=${{ secrets.QA_DB_PASSWORD }}" >> $GITHUB_OUTPUT
+              ;;
+            PROD)
+              echo "src_db_host=${{ secrets.PROD_DB_HOST }}" >> $GITHUB_OUTPUT
+              echo "src_db_name=${{ secrets.PROD_DB_NAME }}" >> $GITHUB_OUTPUT
+              echo "src_db_user=${{ secrets.PROD_DB_USER }}" >> $GITHUB_OUTPUT
+              echo "src_db_pass=${{ secrets.PROD_DB_PASSWORD }}" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+          TGT_ENV_NAME_UPPER=$(echo "${{ github.event.inputs.environment_tgt }}" | tr '[:lower:]' '[:upper:]')
+          
+          case "$TGT_ENV_NAME_UPPER" in
+            DEV)
+              echo "tgt_db_host=${{ secrets.DEV_DB_HOST }}" >> $GITHUB_OUTPUT
+              echo "tgt_db_name=${{ secrets.DEV_DB_NAME }}" >> $GITHUB_OUTPUT
+              echo "tgt_db_user=${{ secrets.DEV_DB_USER }}" >> $GITHUB_OUTPUT
+              echo "tgt_db_pass=${{ secrets.DEV_DB_PASSWORD }}" >> $GITHUB_OUTPUT
+              ;;
+            QA)
+              echo "tgt_db_host=${{ secrets.QA_DB_HOST }}" >> $GITHUB_OUTPUT
+              echo "tgt_db_name=${{ secrets.QA_DB_NAME }}" >> $GITHUB_OUTPUT
+              echo "tgt_db_user=${{ secrets.QA_DB_USER }}" >> $GITHUB_OUTPUT
+              echo "tgt_db_pass=${{ secrets.QA_DB_PASSWORD }}" >> $GITHUB_OUTPUT
+              ;;
+            PROD)
+              echo "tgt_db_host=${{ secrets.PROD_DB_HOST }}" >> $GITHUB_OUTPUT
+              echo "tgt_db_name=${{ secrets.PROD_DB_NAME }}" >> $GITHUB_OUTPUT
+              echo "tgt_db_user=${{ secrets.PROD_DB_USER }}" >> $GITHUB_OUTPUT
+              echo "tgt_db_pass=${{ secrets.PROD_DB_PASSWORD }}" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+      - name: Setup Liquibase
+        uses: liquibase/setup-liquibase@v3
+        with: 
+          version: '4.33.0'
+          edition: "community"
+      
+      - name: Source Database Pre-check (liquibase validate Command)
+        run: | 
+          liquibase status --verbose \
+            --changelog-file=changelog/db.changelog.sql \
+            --url="jdbc:postgresql://${{ steps.get-credentials.outputs.src_db_host }}:5432/${{ steps.get-credentials.outputs.src_db_name }}" \
+            --username="${{ steps.get-credentials.outputs.src_db_user }}" \
+            --password="${{ steps.get-credentials.outputs.src_db_pass }}"
+            
+      - name: Target Database Pre-check (liquibase validate Command)
+        run: | 
+          liquibase status --verbose \
+            --changelog-file=changelog/db.changelog.sql \
+            --url="jdbc:postgresql://${{ steps.get-credentials.outputs.tgt_db_host }}:5432/${{ steps.get-credentials.outputs.tgt_db_name }}" \
+            --username="${{ steps.get-credentials.outputs.tgt_db_user }}" \
+            --password="${{ steps.get-credentials.outputs.tgt_db_pass }}"
+        
+      - name: Check Database Schema Difference (liquibase diff Command)
+        run: |
+          liquibase diff \
+            --url="jdbc:postgresql://${{ steps.get-credentials.outputs.src_db_host }}:5432/${{ steps.get-credentials.outputs.src_db_name }}" \
+            --username="${{ steps.get-credentials.outputs.src_db_user }}" \
+            --password="${{ steps.get-credentials.outputs.src_db_pass }}" \
+            --reference-url="jdbc:postgresql://${{ steps.get-credentials.outputs.tgt_db_host }}:5432/${{ steps.get-credentials.outputs.tgt_db_name }}" \
+            --reference-username="${{ steps.get-credentials.outputs.tgt_db_user }}" \
+            --reference-password="${{ steps.get-credentials.outputs.tgt_db_pass }}"
+
+
+           
