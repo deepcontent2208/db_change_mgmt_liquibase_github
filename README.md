@@ -25,6 +25,11 @@ Following are the chronological steps performed during implementation:
 5. Runner uses Liquibase configuration to deploy database change sets to target DB server using private connection.
 
 ## Environment Setup
+#### Pre-requisite:
+There are some pre-requisites to implement Database Change Management using Azure Database for PostgreSQL, GitHub Actions and Liquibase tool. Following Azure resources should be ready before starting with the remaining steps of this document.
+- Azure VNet with Public Subnet.
+- Azure Database for PostgreSQL deployed on public VNet.
+
 #### GitHub Repository:
 This repo will contain all SQL, Liquibase Changelog & Properties and GitHub Actions Workflow files. Following should be the structure of the folders and files inside of this repo:
 
@@ -86,7 +91,10 @@ Once all the commands are executed go back to GitHub Repo -> Settings -> Actions
 <img width="1666" height="372" alt="image" src="https://github.com/user-attachments/assets/583759de-db1c-458c-9f9e-1dceda226589" />
 
 
-- **Install and configure Liquibase tool** - Liquibase is a database change management tool with proper version control, rollback and drift detection support. Liquibase tool has a pre-requisite of JDK, "openjdk" can be used for the same. Execute following commands to install Liquibase DCM tool:
+- **Install and configure Liquibase tool** - Liquibase is a database change management tool with proper version control, rollback and drift detection support. Liquibase tool has a pre-requisite of JDK, "openjdk" can be used for the same. 
+
+Execute following commands to install Liquibase DCM tool. The final command should show output as below:
+**Liquibase Version: 4.27.0**
 
 **Note**: It will install Liquibase version 4.27. If a different version is needed, then Liquibase URL should be changed accordingly in the 3rd command below.
 ```
@@ -96,5 +104,5 @@ sudo apt install -y openjdk-17-jdk
 wget https://github.com/liquibase/liquibase/releases/download/v4.27.0/liquibase-4.27.0.tar.gz
 tar -xvzf liquibase-*.tar.gz
 sudo ln -s $(pwd)/liquibase /usr/local/bin/liquibase
-liquibase status --this command should show output
+liquibase --version 
 ```
