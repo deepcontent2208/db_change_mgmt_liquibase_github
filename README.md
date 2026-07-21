@@ -108,12 +108,12 @@ liquibase --version
 ```
 
 ## Execution steps
-#### Resources:
+### Resources:
 Download all resources from this GitHub repo. Copy the files (as shown below) in corresponding folders of your repo.
 
 <img width="883" height="883" alt="image" src="https://github.com/user-attachments/assets/9e2550af-4367-4cb6-93da-a374118ef322" />
 
-#### Database Credentials:
+### Database Credentials:
 Use GitHub Secrets to setup database credentials. 
 
 <img width="2252" height="1239" alt="image" src="https://github.com/user-attachments/assets/a5822259-4d42-4d38-8978-271a46842970" />
@@ -162,7 +162,7 @@ PROD_DB_URL
 PROD_DB_USER
 ```
 
-#### Execute:
+### Execute Automated Database Change Management:
 To execute database changes using automatic change management follow the steps below.
 1. Go to your repository.
 2. Go to "Actions".
