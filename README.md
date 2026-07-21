@@ -121,6 +121,12 @@ Use GitHub Secrets to setup database credentials.
 
 Use following variables exactly as mentioned to setup database credentials. Name and case of variables should be exactly same, otherwise pipeline execution will fail.
 
+Database URL should use following syntax. Replace variable '<AZ_PG_ENDPOINT>' with your Azure PostgreSQL endpoint and '<AZ_PG_DB>' with your database name.
+
+```
+jdbc:postgresql://<AZ_PG_ENDPOINT>:5432/<AZ_PG_DB>?sslmode=require
+```
+
 ##### Dev Environment
 ```
 DEV_DB_HOST
@@ -155,3 +161,39 @@ PROD_DB_PASSWORD
 PROD_DB_URL
 PROD_DB_USER
 ```
+
+#### Execute:
+To execute database changes using automatic change management follow the steps below.
+1. Go to your repository.
+2. Go to "Actions".
+3. Select "PostgreSQL Validate Changelog CI (Liquibase Validate)" to validate changes in Azure PG.
+4. Select "PostgreSQL Database Deployment (Liquibase CD)" to deploy changes in Azure PG.
+5. Select "PostgreSQL Database Rollback (Liquibase Rollback CD)" to rollback changes that have been deployed in Azure PG.
+6. Select "PostgreSQL Database Schema Drift (Liquibase CI)" to check schema difference between two environments in Azure PG.
+
+<img width="2257" height="1013" alt="image" src="https://github.com/user-attachments/assets/18f67b63-d485-43d8-b5d9-b1298542101c" />
+
+**Input for "PostgreSQL Validate Changelog CI (Liquibase Validate)":**
+- Target environment: Select "dev", "qa" or "prod" based on your requirement.
+
+<img width="1718" height="880" alt="image" src="https://github.com/user-attachments/assets/0d575f03-a97c-4ca4-a126-27771084cda6" />
+
+**Input for "PostgreSQL Database Deployment (Liquibase CD)":**
+- Target environment: Select "dev", "qa" or "prod" based on your requirement.
+- Tag: "Extremely" important to track changes and perform Rollback. Provide the "tag" or "version" for this deployment. Rollback cannot be done without tags.
+
+<img width="1340" height="789" alt="image" src="https://github.com/user-attachments/assets/f4d60add-457f-4e23-b022-ea3eace12b44" />
+
+
+**Input for "PostgreSQL Database Rollback (Liquibase Rollback CD)":**
+- Target environment: Select "dev", "qa" or "prod" based on your requirement.
+- Tag: Provide the "tag" or "version" to rollback to.
+
+<img width="1349" height="799" alt="image" src="https://github.com/user-attachments/assets/2c6bd995-af3d-4f5e-8581-9ebf69931d99" />
+
+
+**Input for "PostgreSQL Database Schema Drift (Liquibase CI)":**
+- Baseline environment: Source environment for comparison. Select "dev", "qa" or "prod" based on your requirement.
+- Comparing environment: Target environment for comparison. Cannot be same as source. Select "dev", "qa" or "prod" based on your requirement.
+
+<img width="1354" height="792" alt="image" src="https://github.com/user-attachments/assets/13123115-4125-4f3e-bd87-10d22ad104e8" />
