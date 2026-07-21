@@ -9,14 +9,14 @@ This implementation architecture follows best practice of using same source code
 
 **Note**: The implementation architecture can be used across other databases like Azure HorizonDB, Oracle AI Database@Azure, SQL Server on VM etc.
 
-### Architecture Components:
+#### Architecture Components:
 - GitHub Repo : Contains the source codes like SQL execution scripts, GitHub workflow configuration files, Liquibase configuration and Changeset details.
 - GitHub Actions : Contains events, workflow execution details, jobs and runner configuration details.
 - GitHub Secrets : Used to store database connection details and credentials. E.g. Server endpoint, database name, user, password etc.
 - Azure VM : Hosts multiple execution components - self-hosted GitHub Actions Runner, Database Client (like psql), Liquibase installation.
 - Database Servers: Target database environment where SQLs have to be deployed.
 
-### Execution Chronology:
+#### Execution Chronology:
 Following are the chronological steps performed during implementation:
 1. Workflow is triggered automatically by commands like git push or PR merge etc.
 2. Job is picked up by HTTPS poll of self-hosted runner.
