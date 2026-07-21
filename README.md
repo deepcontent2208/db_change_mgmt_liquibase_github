@@ -106,3 +106,52 @@ tar -xvzf liquibase-*.tar.gz
 sudo ln -s $(pwd)/liquibase /usr/local/bin/liquibase
 liquibase --version 
 ```
+
+## Execution steps
+#### Resources:
+Download all resources from this GitHub repo. Copy the files (as shown below) in corresponding folders of your repo.
+
+<img width="883" height="883" alt="image" src="https://github.com/user-attachments/assets/9e2550af-4367-4cb6-93da-a374118ef322" />
+
+#### Database Credentials:
+Use GitHub Secrets to setup database credentials. 
+
+<img width="2252" height="1239" alt="image" src="https://github.com/user-attachments/assets/a5822259-4d42-4d38-8978-271a46842970" />
+
+
+Use following variables exactly as mentioned to setup database credentials. Name and case of variables should be exactly same, otherwise pipeline execution will fail.
+
+##### Dev Environment
+```
+DEV_DB_HOST
+DEV_DB_NAME
+DEV_DB_PASSWORD
+DEV_DB_URL
+DEV_DB_USER
+```
+
+##### QA Environment
+```
+QA_DB_HOST
+QA_DB_NAME
+QA_DB_PASSWORD
+QA_DB_URL
+QA_DB_USER
+```
+##### Dev Environment
+```
+DEV_DB_HOST
+DEV_DB_NAME
+DEV_DB_PASSWORD
+DEV_DB_URL
+DEV_DB_USER
+```
+
+##### PROD Environment
+```
+PROD_DB_HOST
+PROD_DB_NAME
+PROD_DB_PASSWORD
+PROD_DB_URL
+PROD_DB_USER
+```
