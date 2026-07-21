@@ -30,11 +30,15 @@ This repo will contain all SQL, Liquibase Changelog & Properties and GitHub Acti
 
 <img width="612" height="715" alt="image" src="https://github.com/user-attachments/assets/3fe393ff-da89-4a8c-8f5e-5fa0b1c6f019" />
 
-Root folder (Repo name itself) should contain 3 directories as mentioned below:
-- postgres_changelog - This folder will contain Liquibase changelog files written in Liquiase formatted SQL. It would contain PostgreSQL native SQL statements that have to be applied to database and their corresponding ROLLBACK statements along with "author" and "version number" as shown below:
+Root folder (the repository itself) should contain 3 directories and 1 file as mentioned below:
+- **postgres_changelog** - This folder will contain Liquibase changelog files written in Liquiase formatted SQL. It would contain PostgreSQL native SQL statements that have to be applied to database and their corresponding ROLLBACK statements along with "author" and "version number" as shown below:
 
 <img width="1396" height="988" alt="image" src="https://github.com/user-attachments/assets/4cb8b3d6-85d6-4f4b-a967-6fa95aafe86d" />
 
-- 
--  
+- **postgres_sql_scripts (optional)** - Individual SQL statements in changeset file stored separately for backup, fallback and tracking purposes.
+-  **.github/workflows** - Workflow scripts in YAML format for continuous integration, deployment, rollback and schema drift across multiple database environments.
+-  **liquibase.properties** - Liquibase configuration file as shown below:
+
+<img width="1310" height="945" alt="image" src="https://github.com/user-attachments/assets/d5a80ce8-adb7-47c8-a71a-fb56afaebf24" />
+
 
