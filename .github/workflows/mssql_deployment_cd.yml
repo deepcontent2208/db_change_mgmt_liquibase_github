@@ -56,6 +56,12 @@ jobs:
               echo "mssql_db_schema=dbo_prod" >> $GITHUB_OUTPUT
               ;;
           esac
+
+      - name: Debug schema 
+        run: | 
+          echo "MSSQL_DB_SCHEMA=${MSSQL_DB_SCHEMA}" 
+        env: 
+          MSSQL_DB_SCHEMA: ${{ steps.get-credentials.outputs.mssql_db_schema }}
           
       - name: Verify Database Connection Details
         run: |
