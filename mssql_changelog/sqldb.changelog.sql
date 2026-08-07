@@ -3,33 +3,33 @@
 --comment: Create new tables - customers, invoices, orders, products.
 
 CREATE TABLE ${schema_name}.customers (
-  cust_id bigint,
-  cust_name varchar(100),
+  cust_id bigint not null,
+  cust_name varchar(100) not null,
   cust_addr varchar(100),
   cust_type varchar(20),
-  cust_email varchar(40),
-  cust_phone varchar(15),
+  cust_email varchar(40) not null,
+  cust_phone varchar(15) not null,
   card_no varchar(40),
   acc_no varchar(40),
   paypal_acc varchar(40)
 );
 
 CREATE TABLE ${schema_name}.invoices (
-  order_no varchar(40),
-  customer_id bigint,
-  product_id varchar(25),
+  order_no varchar(40) not null,
+  customer_id bigint not null,
+  product_id varchar(25) not null,
   qty int
 );
 
 CREATE TABLE ${schema_name}.orders (
-  order_no varchar(40),
-  customer_id bigint,
+  order_no varchar(40) not null,
+  customer_id bigint not null,
   order_date date,
   payment_method varchar(20)
 );
 
 CREATE TABLE ${schema_name}.products (
-  product_id varchar(30),
+  product_id varchar(30) not null,
   product_desc varchar(60),
   product_category varchar(40),
   price decimal(18,2),
