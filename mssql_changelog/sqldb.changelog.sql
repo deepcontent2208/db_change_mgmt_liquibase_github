@@ -17,7 +17,7 @@ CREATE TABLE ${schema_name}.customers (
 CREATE TABLE ${schema_name}.invoices (
   order_no varchar(40) not null,
   customer_id bigint not null,
-  product_id varchar(25) not null,
+  product_id varchar(30) not null,
   qty int
 );
 
