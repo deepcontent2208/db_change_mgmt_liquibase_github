@@ -81,8 +81,6 @@ jobs:
             --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}"
             --changelog-file=mssql_changelog/sqldb.changelog.sql \
             --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=retaildb;user=${{ steps.get-credentials.outputs.db_user }};password=${{ steps.get-credentials.outputs.db_pass }};encrypt=true;trustServerCertificate=true;"
-        env: 
-          MSSQL_DB_SCHEMA: ${{ steps.get-credentials.outputs.mssql_db_schema }}
       
       - name: Database Pre-check (liquibase validate Command)
         run: | 
