@@ -60,6 +60,7 @@ jobs:
       - name: Debug schema 
         run: | 
           echo "MSSQL_DB_SCHEMA=${MSSQL_DB_SCHEMA}" 
+          echo "db_user"=${{steps.get-credentials.outputs.db_user}}
         env: 
           MSSQL_DB_SCHEMA: ${{ steps.get-credentials.outputs.mssql_db_schema }}
           
