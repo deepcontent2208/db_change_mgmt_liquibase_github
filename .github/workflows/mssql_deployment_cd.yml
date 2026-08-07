@@ -39,18 +39,21 @@ jobs:
               echo "db_name=${{ secrets.MSSQL_DEV_DB_NAME }}" >> $GITHUB_OUTPUT
               echo "db_user=${{ secrets.MSSQL_DEV_DB_USER }}" >> $GITHUB_OUTPUT
               echo "db_pass=${{ secrets.MSSQL_DEV_DB_PASSWORD }}" >> $GITHUB_OUTPUT
+              echo "db_schema=dbo_dev" >> $GITHUB_OUTPUT
               ;;
             QA)
               echo "db_host=${{ secrets.MSSQL_QA_DB_HOST }}" >> $GITHUB_OUTPUT
               echo "db_name=${{ secrets.MSSQL_QA_DB_NAME }}" >> $GITHUB_OUTPUT
               echo "db_user=${{ secrets.MSSQL_QA_DB_USER }}" >> $GITHUB_OUTPUT
               echo "db_pass=${{ secrets.MSSQL_QA_DB_PASSWORD }}" >> $GITHUB_OUTPUT
+              echo "db_schema=dbo_qa" >> $GITHUB_OUTPUT
               ;;
             PROD)
               echo "db_host=${{ secrets.MSSQL_PROD_DB_HOST }}" >> $GITHUB_OUTPUT
               echo "db_name=${{ secrets.MSSQL_PROD_DB_NAME }}" >> $GITHUB_OUTPUT
               echo "db_user=${{ secrets.MSSQL_PROD_DB_USER }}" >> $GITHUB_OUTPUT
               echo "db_pass=${{ secrets.MSSQL_PROD_DB_PASSWORD }}" >> $GITHUB_OUTPUT
+              echo "db_schema=dbo_prod" >> $GITHUB_OUTPUT
               ;;
           esac
           
@@ -67,31 +70,43 @@ jobs:
       - name: Check Liquibase Changes Log Validity (liquibase validate Command)
         run: |
           liquibase validate \
+            --defaults-file=mssql.liquibase.properties \
             --changelog-file=mssql_changelog/sqldb.changelog.sql \
             --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};encrypt=true;trustServerCertificate=false"
             --username="${{ steps.get-credentials.outputs.db_user }}" \
             --password="${{ steps.get-credentials.outputs.db_pass }}"
+        env: 
+          DB_SCHEMA: ${{ steps.get-credentials.outputs.db_schema }}
       
       - name: Database Pre-check (liquibase validate Command)
         run: | 
           liquibase status --verbose \
+            --defaults-file=mssql.liquibase.properties \
             --changelog-file=mssql_changelog/sqldb.changelog.sql \
             --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};encrypt=true;trustServerCertificate=false"
             --username="${{ steps.get-credentials.outputs.db_user }}" \
             --password="${{ steps.get-credentials.outputs.db_pass }}"
+        env: 
+            DB_SCHEMA: ${{ steps.get-credentials.outputs.db_schema }}
         
       - name: Apply Database Changes (liquibase update Command)
         run: |
           liquibase update \
+            --defaults-file=mssql.liquibase.properties \
             --changelog-file=mssql_changelog/sqldb.changelog.sql \
             --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};encrypt=true;trustServerCertificate=false"
             --username="${{ steps.get-credentials.outputs.db_user }}" \
             --password="${{ steps.get-credentials.outputs.db_pass }}"
+        env: 
+          DB_SCHEMA: ${{ steps.get-credentials.outputs.db_schema }}
 
       - name: Tag Database Changes (liquibase tag Command)
         run: |
           liquibase tag \
+            --defaults-file=mssql.liquibase.properties \
             --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};encrypt=true;trustServerCertificate=false"
             --username="${{ steps.get-credentials.outputs.db_user }}" \
             --password="${{ steps.get-credentials.outputs.db_pass }}" \
             --tag=${{ github.event.inputs.rollback_tag }}
+        env: 
+            DB_SCHEMA: ${{ steps.get-credentials.outputs.db_schema }}
