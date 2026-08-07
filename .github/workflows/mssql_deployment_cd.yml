@@ -77,8 +77,8 @@ jobs:
         run: |
           liquibase validate \
             --defaults-file=mssql.liquibase.properties \
-            --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \ 
-            --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}"
+            --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
+            --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --changelog-file=mssql_changelog/sqldb.changelog.sql \
             --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=retaildb;user=${{ steps.get-credentials.outputs.db_user }};password=${{ steps.get-credentials.outputs.db_pass }};encrypt=true;trustServerCertificate=true;"
       
@@ -86,16 +86,19 @@ jobs:
         run: | 
           liquibase status --verbose \
             --defaults-file=mssql.liquibase.properties \
+            --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
+            --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --changelog-file=mssql_changelog/sqldb.changelog.sql \
             --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=retaildb;user=${{ steps.get-credentials.outputs.db_user }};password=${{ steps.get-credentials.outputs.db_pass }};encrypt=true;trustServerCertificate=true;"
-        env: 
-            DB_SCHEMA: ${{ steps.get-credentials.outputs.mssql_db_schema }}
+
         
       - name: Apply Database Changes (liquibase update Command)
         run: |
           liquibase update \
             --defaults-file=mssql.liquibase.properties \
             --changelog-file=mssql_changelog/sqldb.changelog.sql \
+            --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
+            --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=retaildb;user=${{ steps.get-credentials.outputs.db_user }};password=${{ steps.get-credentials.outputs.db_pass }};encrypt=true;trustServerCertificate=true;"
         env: 
           MSSQL_DB_SCHEMA: ${{ steps.get-credentials.outputs.mssql_db_schema }}
@@ -104,6 +107,8 @@ jobs:
         run: |
           liquibase tag \
             --defaults-file=mssql.liquibase.properties \
+            --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
+            --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=retaildb;user=${{ steps.get-credentials.outputs.db_user }};password=${{ steps.get-credentials.outputs.db_pass }};encrypt=true;trustServerCertificate=true;" \
             --tag=${{ github.event.inputs.rollback_tag }}
         env: 
