@@ -67,6 +67,15 @@ jobs:
           version: '4.33.0'
           edition: "community"
 
+      - name: Debug credentials
+        run: |
+          echo "DB Host: ${{ steps.get-credentials.outputs.db_host }}"
+          echo "DB Name: ${{ steps.get-credentials.outputs.db_name }}"
+          echo "DB User Length: ${#DB_USER}"
+        env: 
+          DB_USER: ${{ steps.get-credentials.outputs.db_user }}
+
+      
       - name: Check Liquibase Changes Log Validity (liquibase validate Command)
         run: |
           liquibase validate \
