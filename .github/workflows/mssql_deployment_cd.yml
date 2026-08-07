@@ -81,9 +81,7 @@ jobs:
           liquibase validate \
             --defaults-file=mssql.liquibase.properties \
             --changelog-file=mssql_changelog/sqldb.changelog.sql \
-            --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};encrypt=true;trustServerCertificate=true"
-            --username="${{ steps.get-credentials.outputs.db_user }}" \
-            --password="${{ steps.get-credentials.outputs.db_pass }}"
+            --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=retaildb;user=${{ steps.get-credentials.outputs.db_user }};password=${{ steps.get-credentials.outputs.db_pass }};encrypt=true;trustServerCertificate=true;"
         env: 
           DB_SCHEMA: ${{ steps.get-credentials.outputs.db_schema }}
       
