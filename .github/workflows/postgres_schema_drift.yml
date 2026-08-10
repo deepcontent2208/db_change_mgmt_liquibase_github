@@ -89,7 +89,7 @@ jobs:
       - name: Source Database Pre-check (liquibase validate Command)
         run: | 
           liquibase status --verbose \
-            --changelog-file=changelog/db.changelog.sql \
+            --changelog-file=postgres_changelog/postgresdb.changelog.sql \
             --url="jdbc:postgresql://${{ steps.get-credentials.outputs.src_db_host }}:5432/${{ steps.get-credentials.outputs.src_db_name }}" \
             --username="${{ steps.get-credentials.outputs.src_db_user }}" \
             --password="${{ steps.get-credentials.outputs.src_db_pass }}"
@@ -97,7 +97,7 @@ jobs:
       - name: Target Database Pre-check (liquibase validate Command)
         run: | 
           liquibase status --verbose \
-            --changelog-file=changelog/db.changelog.sql \
+            --changelog-file=postgres_changelog/postgresdb.changelog.sql \
             --url="jdbc:postgresql://${{ steps.get-credentials.outputs.tgt_db_host }}:5432/${{ steps.get-credentials.outputs.tgt_db_name }}" \
             --username="${{ steps.get-credentials.outputs.tgt_db_user }}" \
             --password="${{ steps.get-credentials.outputs.tgt_db_pass }}"
