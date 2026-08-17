@@ -108,33 +108,6 @@ REFERENCES customers (cust_id);
 
 
 --changeset deep:4
---comment: Add new columns in invoices table.
---comment: Change data type in customers and invoices tables.
---comment: Drop columns in products table.
-ALTER TABLE ${schema_name}.invoices ADD invoice_no bigint;
-ALTER TABLE ${schema_name}.invoices ADD invoice_date date;
-
-ALTER TABLE ${schema_name}.customers
-ALTER COLUMN card_no varchar(30);
-
-ALTER TABLE ${schema_name}.invoices
-ALTER COLUMN order_no varchar(30);
-
-ALTER TABLE ${schema_name}.orders
-ALTER COLUMN order_no varchar(30);
-
-ALTER TABLE ${schema_name}.products DROP COLUMN offer_3;
-ALTER TABLE ${schema_name}.products DROP COLUMN offer_4;
-
---rollback ALTER TABLE ${schema_name}.invoices DROP COLUMN invoice_no bigint;
---rollback ALTER TABLE ${schema_name}.invoices DROP COLUMN invoice_date date;
---rollback ALTER TABLE ${schema_name}.customers ALTER COLUMN card_no varchar(40);
---rollback ALTER TABLE ${schema_name}.invoices ALTER COLUMN order_no varchar(40);
---rollback ALTER TABLE ${schema_name}.orders ALTER COLUMN order_no varchar(40);
---rollback ALTER TABLE ${schema_name}.products ADD offer_3;
---rollback ALTER TABLE ${schema_name}.products ADD offer_4;
-
---changeset deep:5
 --comment: Change data type in orders table.
 ALTER TABLE ${schema_name}.orders
 ALTER COLUMN order_date timestamp;
