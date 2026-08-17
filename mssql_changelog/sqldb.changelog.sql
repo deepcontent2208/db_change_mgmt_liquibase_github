@@ -106,10 +106,3 @@ REFERENCES customers (cust_id);
 --rollback ALTER TABLE ${schema_name}.invoices DROP CONSTRAINT fk_invoices_products;
 --rollback ALTER TABLE ${schema_name}.orders DROP CONSTRAINT fk_orders_customers;
 
-
---changeset deep:4
---comment: Change data type in orders table.
-ALTER TABLE ${schema_name}.orders
-ALTER COLUMN order_date timestamp;
-
---rollback ALTER TABLE ${schema_name}.orders ALTER COLUMN order_date date;
