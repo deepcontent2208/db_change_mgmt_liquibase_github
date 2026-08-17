@@ -112,5 +112,4 @@ jobs:
             --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=retaildb;user=${{ steps.get-credentials.outputs.db_user }};password=${{ steps.get-credentials.outputs.db_pass }};encrypt=true;trustServerCertificate=true;" \
-            -Dschema_name=${{ steps.get-credentials.outputs.mssql_db_schema }} \
             --tag=${{ github.event.inputs.rollback_tag }}
