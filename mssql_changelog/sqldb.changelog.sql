@@ -137,6 +137,6 @@ ALTER TABLE ${schema_name}.products DROP COLUMN offer_4;
 --changeset deep:5
 --comment: Change data type in orders table.
 ALTER TABLE ${schema_name}.orders
-ALTER COLUMN order_date TYPE timestamp;
+ALTER COLUMN order_date timestamp;
 
---rollback ALTER TABLE ${schema_name}.orders ALTER COLUMN order_date TYPE date;
+--rollback ALTER TABLE ${schema_name}.orders ALTER COLUMN order_date date;
