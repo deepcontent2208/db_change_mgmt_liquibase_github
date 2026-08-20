@@ -127,8 +127,7 @@ jobs:
 
 
       - name: Capture Post-deployment Schema State (liquibase snapshot Command)
-        run: | 
-          DB_NAME = "${{ steps.get-credentials.outputs.db_name }}" 
+        run: |
           liquibase snapshot \
             --defaults-file=mssql.liquibase.properties \
             --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
