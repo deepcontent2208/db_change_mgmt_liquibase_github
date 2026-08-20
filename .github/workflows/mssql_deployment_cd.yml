@@ -97,8 +97,8 @@ jobs:
 
       - name: Capture Pre-deployment Schema State (liquibase snapshot Command)
         run: | 
-          SCHEMA="${{ steps.get-credentials.outputs.mssql_db_schema }}"
-          DB_NAME = "${{ steps.get-credentials.outputs.db_name }}"
+          SCHEMA="${{ steps.get-credentials.outputs.mssql_db_schema }}" |
+          DB_NAME = "${{ steps.get-credentials.outputs.db_name }}" |
           liquibase snapshot \
             --defaults-file=mssql.liquibase.properties \
             --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
@@ -131,8 +131,8 @@ jobs:
 
       - name: Capture Post-deployment Schema State (liquibase snapshot Command)
         run: | 
-          SCHEMA="${{ steps.get-credentials.outputs.mssql_db_schema }}"
-          DB_NAME = "${{ steps.get-credentials.outputs.db_name }}"
+          SCHEMA="${{ steps.get-credentials.outputs.mssql_db_schema }}" |
+          DB_NAME = "${{ steps.get-credentials.outputs.db_name }}" |
           liquibase snapshot \
             --defaults-file=mssql.liquibase.properties \
             --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
@@ -145,8 +145,8 @@ jobs:
 
       - name: Check Database Schema Difference Before & After Deployment (liquibase diff Command)
         run: |
-          SCHEMA="${{ steps.get-credentials.outputs.mssql_db_schema }}"
-          DB_NAME = "${{ steps.get-credentials.outputs.db_name }}"
+          SCHEMA="${{ steps.get-credentials.outputs.mssql_db_schema }}" |
+          DB_NAME = "${{ steps.get-credentials.outputs.db_name }}" |
           liquibase diff \
             --defaults-file=mssql.liquibase.properties \
             --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
