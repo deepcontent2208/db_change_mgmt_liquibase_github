@@ -59,3 +59,26 @@ ALTER TABLE ${schema_name}.products ADD PRIMARY KEY (product_id);
 --rollback ALTER TABLE ${schema_name}.invoices DROP CONSTRAINT fk_invoices_products;
 --rollback ALTER TABLE ${schema_name}.orders DROP CONSTRAINT fk_orders_customers;
 
+--changeset deep:2
+--comment: Create indexes for the tables - customers, invoices, orders, products.
+CREATE INDEX customers_cust_id_ix1 ON ${schema_name}.customers (cust_id);
+CREATE INDEX customers_cust_email_ix2 ON ${schema_name}.customers (cust_email);
+CREATE INDEX customers_cust_phone_ix3 ON ${schema_name}.customers (cust_phone);
+
+CREATE INDEX invoices_cust_id_ix1 ON ${schema_name}.invoices (customer_id);
+CREATE INDEX invoices_ordr_no_ix2 ON ${schema_name}.invoices (order_no);
+
+CREATE INDEX orders_ordr_no_ix1 ON ${schema_name}.orders (order_no);
+CREATE INDEX orders_cust_id_ix2 ON ${schema_name}.orders (customer_id);
+
+CREATE INDEX products_prd_id_ix1 ON ${schema_name}.products (product_id);
+
+--rollback DROP INDEX customers_cust_id_ix1;
+--rollback DROP INDEX customers_cust_email_ix2;
+--rollback DROP INDEX customers_cust_phone_ix3;
+--rollback DROP INDEX invoices_cust_id_ix1;
+--rollback DROP INDEX invoices_ordr_no_ix2;
+--rollback DROP INDEX orders_ordr_no_ix1;
+--rollback DROP INDEX orders_cust_id_ix2;
+--rollback DROP INDEX products_prd_id_ix1;
+
