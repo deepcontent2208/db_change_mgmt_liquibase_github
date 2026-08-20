@@ -97,8 +97,7 @@ jobs:
 
       - name: Capture Pre-deployment Schema State (liquibase snapshot Command)
         run: | 
-          SCHEMA="${{ steps.get-credentials.outputs.mssql_db_schema }}" |
-          DB_NAME = "${{ steps.get-credentials.outputs.db_name }}" |
+          DB_NAME = "${{ steps.get-credentials.outputs.db_name }}"
           liquibase snapshot \
             --defaults-file=mssql.liquibase.properties \
             --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
@@ -106,7 +105,7 @@ jobs:
             --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};user=${{ steps.get-credentials.outputs.db_user }};password=${{ steps.get-credentials.outputs.db_pass }};encrypt=true;trustServerCertificate=true;" \
             -Dschema_name=${{ steps.get-credentials.outputs.mssql_db_schema }} \
             --snapshot-format=json \
-            --output-file=pre_deploy_snapshot_${DB_NAME}_${SCHEMA}.json
+            --output-file=pre_deploy_snapshot_${DB_NAME}.json
 
             
       - name: Apply Database Changes (liquibase update Command)
@@ -131,8 +130,7 @@ jobs:
 
       - name: Capture Post-deployment Schema State (liquibase snapshot Command)
         run: | 
-          SCHEMA="${{ steps.get-credentials.outputs.mssql_db_schema }}" |
-          DB_NAME = "${{ steps.get-credentials.outputs.db_name }}" |
+          DB_NAME = "${{ steps.get-credentials.outputs.db_name }}" 
           liquibase snapshot \
             --defaults-file=mssql.liquibase.properties \
             --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
@@ -140,15 +138,14 @@ jobs:
             --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};user=${{ steps.get-credentials.outputs.db_user }};password=${{ steps.get-credentials.outputs.db_pass }};encrypt=true;trustServerCertificate=true;" \
             -Dschema_name=${{ steps.get-credentials.outputs.mssql_db_schema }} \
             --snapshot-format=json \
-            --output-file=post_deploy_snapshot_${DB_NAME}_${SCHEMA}.json
+            --output-file=post_deploy_snapshot_${DB_NAME}.json
 
 
       - name: Check Database Schema Difference Before & After Deployment (liquibase diff Command)
         run: |
-          SCHEMA="${{ steps.get-credentials.outputs.mssql_db_schema }}" |
-          DB_NAME = "${{ steps.get-credentials.outputs.db_name }}" |
+          DB_NAME = "${{ steps.get-credentials.outputs.db_name }}" 
           liquibase diff \
             --defaults-file=mssql.liquibase.properties \
             --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
-            --reference-url="offline:mssql?snapshot=pre_deploy_snapshot_${DB_NAME}_${SCHEMA}.json" \
+            --reference-url="offline:mssql?snapshot=pre_deploy_snapshot_${DB_NAME}.json" \
             --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};user=${{ steps.get-credentials.outputs.db_user }};password=${{ steps.get-credentials.outputs.db_pass }};encrypt=true;trustServerCertificate=true;"
