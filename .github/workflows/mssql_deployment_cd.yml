@@ -139,7 +139,6 @@ jobs:
 
       - name: Check Database Schema Difference Before & After Deployment (liquibase diff Command)
         run: |
-          DB_NAME = "${{ steps.get-credentials.outputs.db_name }}" 
           liquibase diff \
             --defaults-file=mssql.liquibase.properties \
             --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
