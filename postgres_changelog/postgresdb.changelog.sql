@@ -76,3 +76,32 @@ CREATE INDEX products_prd_id_ix1 ON products (product_id);
 --rollback DROP INDEX orders_cust_id_ix2;
 --rollback DROP INDEX products_prd_id_ix1;
 
+
+--changeset deep:3
+--comment: Create referential integrities between invoices and customers, orders, products.
+--comment: Create referential integrities between orders and customers.
+ALTER TABLE invoices
+ADD CONSTRAINT fk_invoices_customers
+FOREIGN KEY (customer_id)
+REFERENCES customers (cust_id);
+
+ALTER TABLE invoices
+ADD CONSTRAINT fk_invoices_orders
+FOREIGN KEY (order_no)
+REFERENCES orders (order_no);
+
+ALTER TABLE invoices
+ADD CONSTRAINT fk_invoices_products
+FOREIGN KEY (product_id)
+REFERENCES products (product_id);
+
+ALTER TABLE orders
+ADD CONSTRAINT fk_orders_customers
+FOREIGN KEY (customer_id)
+REFERENCES customers (cust_id);
+
+--rollback ALTER TABLE invoices DROP CONSTRAINT fk_invoices_customers;
+--rollback ALTER TABLE invoices DROP CONSTRAINT fk_invoices_orders;
+--rollback ALTER TABLE invoices DROP CONSTRAINT fk_invoices_products;
+--rollback ALTER TABLE orders DROP CONSTRAINT fk_orders_customers;
+
