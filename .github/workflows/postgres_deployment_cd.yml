@@ -24,11 +24,20 @@ jobs:
         id: generate-rollback-tag
         shell: bash 
         run: |
-          timestamp=$(date -u +"%Y%m%dT%H%M%SZ")
+          timestamp=$(date -u +"%Y%m%d%H%M%S")
           UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
-          ROLLBACK_TAG="rb-${{ inputs.environment }}-${TIMESTAMP}-${UUID}"
-          echo "rollback_tag=${ROLLBACK_TAG}" >> $GITHUB_OUTPUT
+          ROLLBACK_TAG="rb-${{ inputs.environment }}-${timestamp}-${UUID}"
           
+          echo "timestamp=${timestamp}"
+          echo "UUID=${UUID}"
+          echo "ROLLBACK_TAG=${ROLLBACK_TAG}"
+          
+          echo "rollback_tag=${ROLLBACK_TAG}" >> $GITHUB_OUTPUT
+
+      - name: Print output variable
+        run: |
+          echo "rollback_tag = ${{ steps.generate-rollback-tag.outputs.rollback_tag }}"
+        
       - name: Checkout Repository
         uses: actions/checkout@v4
 
