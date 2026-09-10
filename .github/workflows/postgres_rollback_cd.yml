@@ -67,7 +67,7 @@ jobs:
       - name: Check Liquibase Changes Log Validity (liquibase validate Command)
         run: |
           liquibase validate \
-            --changelog-file=changelog/db.changelog.sql \
+            --changelog-file=postgres_changelog/postgresdb.changelog.sql \
             --url=""jdbc:postgresql://${{ steps.get-credentials.outputs.db_host }}:5432/${{ steps.get-credentials.outputs.db_name }}"" \
             --username="${{ steps.get-credentials.outputs.db_user }}" \
             --password="${{ steps.get-credentials.outputs.db_pass }}"
