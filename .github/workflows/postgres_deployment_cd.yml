@@ -27,7 +27,7 @@ jobs:
           timestamp=$(date -u +"%Y%m%dT%H%M%SZ")
           UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
           ROLLBACK_TAG="rb-${{ inputs.environment }}-${TIMESTAMP}-${UUID}"
-          echo "rollback_tag=${ROLLBACK_TAG}" >> $GITHUB_OUTPUT"
+          echo "rollback_tag=${ROLLBACK_TAG}" >> $GITHUB_OUTPUT
           
       - name: Checkout Repository
         uses: actions/checkout@v4
