@@ -14,7 +14,7 @@ on:
           - prod
       
       rollback_tag:
-        description: 'Enter the target tag to rollback to (e.g., "v1.0"). It is case sensitive.'
+        description: 'Enter the target tag for rollback. It is case sensitive.'
         required: true
         type: string
 
@@ -75,7 +75,7 @@ jobs:
       - name: Database Pre-check (liquibase validate Command)
         run: | 
           liquibase status --verbose \
-            --changelog-file=changelog/db.changelog.sql \
+            --changelog-file=postgres_changelog/postgresdb.changelog.sql \
             --url="jdbc:postgresql://${{ steps.get-credentials.outputs.db_host }}:5432/${{ steps.get-credentials.outputs.db_name }}" \
             --username="${{ steps.get-credentials.outputs.db_user }}" \
             --password="${{ steps.get-credentials.outputs.db_pass }}"
@@ -83,7 +83,7 @@ jobs:
       - name: Apply Database Rollback (liquibase rollback Command)
         run: |
           liquibase rollback \
-            --changelog-file=changelog/db.changelog.sql \
+            --changelog-file=postgres_changelog/postgresdb.changelog.sql \
             --url="jdbc:postgresql://${{ steps.get-credentials.outputs.db_host }}:5432/${{ steps.get-credentials.outputs.db_name }}" \
             --username="${{ steps.get-credentials.outputs.db_user }}" \
             --password="${{ steps.get-credentials.outputs.db_pass }}" \
