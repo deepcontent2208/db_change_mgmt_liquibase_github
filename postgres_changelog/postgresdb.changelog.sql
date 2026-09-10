@@ -53,4 +53,26 @@ ALTER TABLE products ADD PRIMARY KEY (product_id);
 --rollback DROP TABLE products;
 
 
+--changeset deep:2
+--comment: Create indexes for the tables - customers, invoices, orders, products.
+CREATE INDEX customers_cust_id_ix1 ON customers (cust_id);
+CREATE INDEX customers_cust_email_ix2 ON customers (cust_email);
+CREATE INDEX customers_cust_phone_ix3 ON customers (cust_phone);
+
+CREATE INDEX invoices_cust_id_ix1 ON invoices (customer_id);
+CREATE INDEX invoices_ordr_no_ix2 ON invoices (order_no);
+
+CREATE INDEX orders_ordr_no_ix1 ON orders (order_no);
+CREATE INDEX orders_cust_id_ix2 ON orders (customer_id);
+
+CREATE INDEX products_prd_id_ix1 ON products (product_id);
+
+--rollback DROP INDEX customers_cust_id_ix1;
+--rollback DROP INDEX customers_cust_email_ix2;
+--rollback DROP INDEX customers_cust_phone_ix3;
+--rollback DROP INDEX invoices_cust_id_ix1;
+--rollback DROP INDEX invoices_ordr_no_ix2;
+--rollback DROP INDEX orders_ordr_no_ix1;
+--rollback DROP INDEX orders_cust_id_ix2;
+--rollback DROP INDEX products_prd_id_ix1;
 
