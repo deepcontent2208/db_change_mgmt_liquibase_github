@@ -12,11 +12,6 @@ on:
           - dev
           - qa
           - prod
-      
-      rollback_tag:
-        description: 'Enter the tag for this release (e.g., "v1.0"). It is case sensitive.'
-        required: true
-        type: string
 
 jobs:
   deploy:
@@ -25,6 +20,15 @@ jobs:
     environment: ${{ github.event.inputs.environment }}
 
     steps:
+      - name: Generate "rollback" tag
+        id: generate-rollback-tag
+        shell: bash 
+        run: |
+          timestamp=$(date -u +"%Y%m%d%H%M%S")
+          uuid_tmp=$(uuidgen | tr '[:upper:]' '[:lower:]')
+          rollback_tag="rb-${{ inputs.environment }}-${timestamp}-${uuid_tmp}"
+          echo "rollback_tag=${rollback_tag}" >> $GITHUB_OUTPUT
+    
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -123,7 +127,7 @@ jobs:
             --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};user=${{ steps.get-credentials.outputs.db_user }};password=${{ steps.get-credentials.outputs.db_pass }};encrypt=true;trustServerCertificate=true;" \
-            --tag=${{ github.event.inputs.rollback_tag }}
+            --tag=${{ steps.generate-rollback-tag.outputs.rollback_tag }}
 
 
       - name: Capture Post-deployment Schema State (liquibase snapshot Command)
