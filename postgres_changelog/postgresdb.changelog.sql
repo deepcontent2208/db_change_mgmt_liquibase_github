@@ -53,9 +53,4 @@ ALTER TABLE products ADD PRIMARY KEY (product_id);
 --rollback DROP TABLE products;
 
 
---changeset deep:5
---comment: Change data type in orders table.
-ALTER TABLE orders
-ALTER COLUMN order_date TYPE timestamp;
 
---rollback ALTER TABLE orders ALTER COLUMN order_date TYPE date;
