@@ -12,11 +12,6 @@ on:
           - dev
           - qa
           - prod
-      
-      rollback_tag:
-        description: 'Enter the tag for this release (e.g., "v1.0"). It is case sensitive.'
-        required: true
-        type: string
 
 jobs:
   deploy:
@@ -25,6 +20,15 @@ jobs:
     environment: ${{ github.event.inputs.environment }}
 
     steps:
+      - name: Generate "rollback" tag
+        id: generate-rollback-tag
+        shell: bash 
+        run: |
+          timestamp=$(date -u +"%Y%m%dT%H%M%SZ")
+          UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
+          rollback_tag="rb-${{ inputs.environment }}-${TIMESTAMP}-${UUID}"
+          echo "rollback_tag=${ROLLBACK_TAG}" >> "$GITHUB_OUTPUT"
+          
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -94,4 +98,4 @@ jobs:
             --url="jdbc:postgresql://${{ steps.get-credentials.outputs.db_host }}:5432/${{ steps.get-credentials.outputs.db_name }}" \
             --username="${{ steps.get-credentials.outputs.db_user }}" \
             --password="${{ steps.get-credentials.outputs.db_pass }}" \
-            --tag=${{ github.event.inputs.rollback_tag }}
+            --tag=${{ steps.generate-rollback-tag.outputs.rollback_tag }}
