@@ -25,14 +25,14 @@ jobs:
         shell: bash 
         run: |
           timestamp=$(date -u +"%Y%m%d%H%M%S")
-          UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
-          ROLLBACK_TAG="rb-${{ inputs.environment }}-${timestamp}-${UUID}"
+          uuid_tmp=$(uuidgen | tr '[:upper:]' '[:lower:]')
+          rollback_tag="rb-${{ inputs.environment }}-${timestamp}-${uuid_tmp}"
           
           echo "timestamp=${timestamp}"
-          echo "UUID=${UUID}"
-          echo "ROLLBACK_TAG=${ROLLBACK_TAG}"
+          echo "uuid=${uuid_tmp}"
+          echo "rollback_tag=${rollback_tag}"
           
-          echo "rollback_tag=${ROLLBACK_TAG}" >> $GITHUB_OUTPUT
+          echo "rollback_tag=${rollback_tag}" >> $GITHUB_OUTPUT
 
       - name: Print output variable
         run: |
