@@ -98,4 +98,4 @@ jobs:
             --url="jdbc:postgresql://${{ steps.get-credentials.outputs.db_host }}:5432/${{ steps.get-credentials.outputs.db_name }}" \
             --username="${{ steps.get-credentials.outputs.db_user }}" \
             --password="${{ steps.get-credentials.outputs.db_pass }}" \
-            --tag=${{ steps.generate-rollback-tag.outputs.rollback_tag }}
+            --tag="${{ steps.generate-rollback-tag.outputs.rollback_tag }}"
