@@ -102,7 +102,6 @@ jobs:
       - name: Tag Database Changes (liquibase tag Command)
         run: |
           liquibase tag \
-            --changelog-file=postgres_changelog/postgresdb.changelog.sql \
             --url="jdbc:postgresql://${{ steps.get-host-dbname.outputs.db_host }}:5432/${{ steps.get-host-dbname.outputs.db_name }}?sslmode=require" \
             --username="${{ steps.get-host-dbname.outputs.db_user }}" \
             --tag="${{ steps.generate-rollback-tag.outputs.rollback_tag }}"
