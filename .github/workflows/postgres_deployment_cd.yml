@@ -90,6 +90,14 @@ jobs:
             --url="jdbc:postgresql://${{ steps.get-host-dbname.outputs.db_host }}:5432/${{ steps.get-host-dbname.outputs.db_name }}?sslmode=require" \
             --username="${{ steps.get-host-dbname.outputs.db_user }}"
             # --password="${{ steps.get-host-dbname.outputs.db_pass }}"
+
+      - name: Capture Pre-deployment Schema State (liquibase snapshot Command)
+        run: | 
+          liquibase snapshot \
+            --defaults-file=postgres_changelog/postgresdb.changelog.sql \
+            --url="jdbc:postgresql://${{ steps.get-host-dbname.outputs.db_host }}:5432/${{ steps.get-host-dbname.outputs.db_name }}?sslmode=require" \
+            --snapshot-format=json \
+            --output-file=pre_deploy_snapshot_${{steps.get-host-dbname.outputs.db_name}}.json
         
       - name: Apply Database Changes (liquibase update Command)
         run: |
@@ -105,3 +113,13 @@ jobs:
             --url="jdbc:postgresql://${{ steps.get-host-dbname.outputs.db_host }}:5432/${{ steps.get-host-dbname.outputs.db_name }}?sslmode=require" \
             --username="${{ steps.get-host-dbname.outputs.db_user }}" \
             --tag="${{ steps.generate-rollback-tag.outputs.rollback_tag }}"
+
+      - name: Capture Post-deployment Schema State (liquibase snapshot Command)
+        run: |
+          liquibase snapshot \
+            --defaults-file=postgres_changelog/postgresdb.changelog.sql \
+            --url="jdbc:postgresql://${{ steps.get-host-dbname.outputs.db_host }}:5432/${{ steps.get-host-dbname.outputs.db_name }}?sslmode=require" \
+            --snapshot-format=json \
+            --output-file=post_deploy_snapshot_${{steps.get-host-dbname.outputs.db_name}}.json
+
+
