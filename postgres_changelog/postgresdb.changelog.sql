@@ -105,3 +105,17 @@ REFERENCES customers (cust_id);
 --rollback ALTER TABLE invoices DROP CONSTRAINT fk_invoices_products;
 --rollback ALTER TABLE orders DROP CONSTRAINT fk_orders_customers;
 
+--changeset deep:4
+--comment: Create new table order_items.
+CREATE TABLE order_items (
+  order_item_no varchar(40),
+  order_no varchar(40),
+  order_item_qty int,
+  order_item_price decimal(10,2)
+);
+
+ALTER TABLE order_items ADD PRIMARY KEY (order_item_no);
+
+ALTER TABLE order_items ADD CONSTRAINT fk_order_items_orders
+FOREIGN KEY (order_no)
+REFERENCES orders (order_no);
