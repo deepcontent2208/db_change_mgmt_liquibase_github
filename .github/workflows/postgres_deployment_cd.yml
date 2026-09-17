@@ -96,6 +96,7 @@ jobs:
           liquibase snapshot \
             --defaults-file=postgres_changelog/postgresdb.changelog.sql \
             --url="jdbc:postgresql://${{ steps.get-host-dbname.outputs.db_host }}:5432/${{ steps.get-host-dbname.outputs.db_name }}?sslmode=require" \
+            --username="${{ steps.get-host-dbname.outputs.db_user }}" 
             --snapshot-format=json \
             --output-file=pre_deploy_snapshot_${{steps.get-host-dbname.outputs.db_name}}.json
         
@@ -119,6 +120,7 @@ jobs:
           liquibase snapshot \
             --defaults-file=postgres_changelog/postgresdb.changelog.sql \
             --url="jdbc:postgresql://${{ steps.get-host-dbname.outputs.db_host }}:5432/${{ steps.get-host-dbname.outputs.db_name }}?sslmode=require" \
+            --username="${{ steps.get-host-dbname.outputs.db_user }}" 
             --snapshot-format=json \
             --output-file=post_deploy_snapshot_${{steps.get-host-dbname.outputs.db_name}}.json
 
