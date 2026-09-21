@@ -73,8 +73,14 @@ CREATE INDEX orders_cust_id_ix2 ON ${schema_name}.orders (customer_id);
 
 CREATE INDEX products_prd_id_ix1 ON ${schema_name}.products (product_id);
 
---rollback DROP INDEX customers_cust_id_ix1;
---rollback DROP INDEX customers_cust_email_ix2;
+--rollback drop index customers_cust_id_ix1 on ${schema_name}.customers;
+--rollback drop index customers_cust_email_ix2 on ${schema_name}.customers;
+--rollback drop index customers_cust_phone_ix3 on ${schema_name}.customers;
+--rollback drop index invoices_cust_id_ix1 on ${schema_name}.invoices;
+--rollback drop index invoices_ordr_no_ix2 on ${schema_name}.invoices;
+--rollback drop index orders_ordr_no_ix1 on ${schema_name}.orders;
+--rollback drop index orders_cust_id_ix2 on ${schema_name}.orders;
+--rollback drop index products_prd_id_ix1 on ${schema_name}.products;
 
 
 --changeset deep:3
@@ -89,10 +95,5 @@ CREATE TABLE ${schema_name}.order_items (
 ALTER TABLE ${schema_name}.order_items ADD PRIMARY KEY (order_item_no);
 
 --rollback drop table order_items;
---rollback DROP INDEX customers_cust_phone_ix3;
---rollback DROP INDEX invoices_cust_id_ix1;
---rollback DROP INDEX invoices_ordr_no_ix2;
---rollback DROP INDEX orders_ordr_no_ix1;
---rollback DROP INDEX orders_cust_id_ix2;
---rollback DROP INDEX products_prd_id_ix1;
+
 
