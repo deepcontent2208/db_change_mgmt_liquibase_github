@@ -82,7 +82,7 @@ CREATE INDEX products_prd_id_ix1 ON ${schema_name}.products (product_id);
 --rollback DROP INDEX orders_cust_id_ix2;
 --rollback DROP INDEX products_prd_id_ix1;
 
---changeset deep:2
+--changeset deep:3
 --comment: Create indexes for the tables - customers, invoices, orders, products.
 CREATE TABLE order_items (
   order_item_no varchar(40),
