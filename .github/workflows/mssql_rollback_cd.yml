@@ -43,21 +43,21 @@ jobs:
             DEV)
               echo "db_host=${{ secrets.MSSQL_DEV_DB_HOST }}" >> $GITHUB_OUTPUT
               echo "db_name=${{ secrets.MSSQL_DEV_DB_NAME }}" >> $GITHUB_OUTPUT
-              echo "db_user=${{ secrets.MSSQL_DEV_DB_USER }}" >> $GITHUB_OUTPUT
+              # echo "db_user=${{ secrets.MSSQL_DEV_DB_USER }}" >> $GITHUB_OUTPUT
               # echo "db_pass=${{ secrets.MSSQL_DEV_DB_PASSWORD }}" >> $GITHUB_OUTPUT
               echo "mssql_db_schema=${{ secrets.MSSQL_DEV_DB_SCHEMA }}" >> $GITHUB_OUTPUT
               ;;
             QA)
               echo "db_host=${{ secrets.MSSQL_QA_DB_HOST }}" >> $GITHUB_OUTPUT
               echo "db_name=${{ secrets.MSSQL_QA_DB_NAME }}" >> $GITHUB_OUTPUT
-              echo "db_user=${{ secrets.MSSQL_QA_DB_USER }}" >> $GITHUB_OUTPUT
+              # echo "db_user=${{ secrets.MSSQL_QA_DB_USER }}" >> $GITHUB_OUTPUT
               # echo "db_pass=${{ secrets.MSSQL_QA_DB_PASSWORD }}" >> $GITHUB_OUTPUT
               echo "mssql_db_schema=${{ secrets.MSSQL_QA_DB_SCHEMA }}" >> $GITHUB_OUTPUT
               ;;
             PROD)
               echo "db_host=${{ secrets.MSSQL_PROD_DB_HOST }}" >> $GITHUB_OUTPUT
               echo "db_name=${{ secrets.MSSQL_PROD_DB_NAME }}" >> $GITHUB_OUTPUT
-              echo "db_user=${{ secrets.MSSQL_PROD_DB_USER }}" >> $GITHUB_OUTPUT
+              # echo "db_user=${{ secrets.MSSQL_PROD_DB_USER }}" >> $GITHUB_OUTPUT
               # echo "db_pass=${{ secrets.MSSQL_PROD_DB_PASSWORD }}" >> $GITHUB_OUTPUT
               echo "mssql_db_schema=${{ secrets.MSSQL_PROD_DB_SCHEMA }}" >> $GITHUB_OUTPUT
               ;;
