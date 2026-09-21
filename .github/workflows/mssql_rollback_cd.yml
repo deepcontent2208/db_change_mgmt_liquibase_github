@@ -99,4 +99,5 @@ jobs:
             --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};authentication=ActiveDirectoryManagedIdentity;encrypt=true;trustServerCertificate=true;" \
-            -Dschema_name=${{ steps.get-credentials.outputs.mssql_db_schema }}
+            -Dschema_name=${{ steps.get-credentials.outputs.mssql_db_schema }} \
+            --tag=${{ github.event.inputs.rollback_tag }}
