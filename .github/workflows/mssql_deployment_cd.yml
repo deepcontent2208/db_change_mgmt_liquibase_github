@@ -90,7 +90,7 @@ jobs:
           LIQUIBASE_BIN=$(readlink -f $(command -v liquibase))
           LIQUIBASE_HOME=$(dirname "${LIQUIBASE_BIN}")
           echo "LIQUIBASE_HOME=$LIQUIBASE_HOME" >> "$GITHUB_ENV"
-          echo "Liquibase home: $LIQUIBASE_HOME
+          echo "Liquibase home: " $LIQUIBASE_HOME
       
       - name: Check Liquibase Changes Log Validity (liquibase validate Command)
         run: |
