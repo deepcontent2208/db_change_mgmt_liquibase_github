@@ -28,6 +28,11 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Get Managed Identity Credentials
+        run: |
+          MSSQL_PWD=$(curl -s "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fossrdbms-aad.database.windows.net" -H Metadata:true | jq -r .access_token)
+          echo "::add-mask::$MSSQL_PWD"
+          # echo "LIQUIBASE_COMMAND_PASSWORD=$MSSQL_PWD" >> "$GITHUB_ENV"
 
       - name: Auto populate database connection parameters
         id: get-credentials
@@ -67,6 +72,7 @@ jobs:
       - name: Check Liquibase Changes Log Validity (liquibase validate Command)
         run: |
           liquibase validate \
+            --defaults-file=mssql.liquibase.properties \
             --changelog-file=mssql_changelog/sqldb.changelog.sql \
             --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
@@ -77,6 +83,7 @@ jobs:
       - name: Database Pre-check (liquibase validate Command)
         run: | 
           liquibase status --verbose \
+            --defaults-file=mssql.liquibase.properties \
             --changelog-file=mssql_changelog/sqldb.changelog.sql \
             --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
@@ -87,6 +94,7 @@ jobs:
       - name: Apply Database Rollback (liquibase rollback Command)
         run: |
           liquibase rollback \
+            --defaults-file=mssql.liquibase.properties \
             --changelog-file=mssql_changelog/sqldb.changelog.sql \
             --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
