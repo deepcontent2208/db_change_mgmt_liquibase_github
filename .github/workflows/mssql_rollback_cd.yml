@@ -70,7 +70,7 @@ jobs:
             --changelog-file=mssql_changelog/sqldb.changelog.sql \
             --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
-            --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};user=${{ steps.get-credentials.outputs.db_user }};password=${{ steps.get-credentials.outputs.db_pass }};encrypt=true;trustServerCertificate=true;" \
+            --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};authentication=ActiveDirectoryManagedIdentity;encrypt=true;trustServerCertificate=true;" \
             -Dschema_name=${{ steps.get-credentials.outputs.mssql_db_schema }}
       
       - name: Database Pre-check (liquibase validate Command)
@@ -79,7 +79,7 @@ jobs:
             --changelog-file=mssql_changelog/sqldb.changelog.sql \
             --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
-            --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};user=${{ steps.get-credentials.outputs.db_user }};password=${{ steps.get-credentials.outputs.db_pass }};encrypt=true;trustServerCertificate=true;" \
+            --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};authentication=ActiveDirectoryManagedIdentity;encrypt=true;trustServerCertificate=true;" \
             -Dschema_name=${{ steps.get-credentials.outputs.mssql_db_schema }}
         
       - name: Apply Database Rollback (liquibase rollback Command)
@@ -88,5 +88,5 @@ jobs:
             --changelog-file=mssql_changelog/sqldb.changelog.sql \
             --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
-            --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};user=${{ steps.get-credentials.outputs.db_user }};password=${{ steps.get-credentials.outputs.db_pass }};encrypt=true;trustServerCertificate=true;" \
+            --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};authentication=ActiveDirectoryManagedIdentity;encrypt=true;trustServerCertificate=true;" \
             -Dschema_name=${{ steps.get-credentials.outputs.mssql_db_schema }}
