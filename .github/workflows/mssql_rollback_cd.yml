@@ -28,6 +28,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+
       - name: Auto populate database connection parameters
         id: get-credentials
         run: |
@@ -53,16 +54,12 @@ jobs:
               echo "db_pass=${{ secrets.PROD_DB_PASSWORD }}" >> $GITHUB_OUTPUT
               ;;
           esac
+
           
       - name: Verify Database Connection Details
         run: |
           echo "Target environment: ${{ github.event.inputs.environment }}"
 
-      - name: Setup Liquibase
-        uses: liquibase/setup-liquibase@v3
-        with: 
-          version: '4.33.0'
-          edition: "community"
 
       - name: Check Liquibase Changes Log Validity (liquibase validate Command)
         run: |
@@ -72,6 +69,7 @@ jobs:
             --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};authentication=ActiveDirectoryManagedIdentity;encrypt=true;trustServerCertificate=true;" \
             -Dschema_name=${{ steps.get-credentials.outputs.mssql_db_schema }}
+
       
       - name: Database Pre-check (liquibase validate Command)
         run: | 
@@ -81,6 +79,7 @@ jobs:
             --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};authentication=ActiveDirectoryManagedIdentity;encrypt=true;trustServerCertificate=true;" \
             -Dschema_name=${{ steps.get-credentials.outputs.mssql_db_schema }}
+
         
       - name: Apply Database Rollback (liquibase rollback Command)
         run: |
