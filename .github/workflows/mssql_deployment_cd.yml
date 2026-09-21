@@ -87,7 +87,7 @@ jobs:
       - name: Check Liquibase Changes Log Validity (liquibase validate Command)
         run: |
           liquibase validate \
-            --classpath=/home/soudey/liquibase/lib/liquibase-azure-deps-4.33.0.jar
+            --classpath=/home/soudey/liquibase/lib/liquibase-azure-deps-4.33.0.jar \
             --defaults-file=mssql.liquibase.properties \
             --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
@@ -98,7 +98,7 @@ jobs:
       - name: Database Pre-check (liquibase validate Command)
         run: | 
           liquibase status --verbose \
-            --classpath=/home/soudey/liquibase/lib/liquibase-azure-deps-4.33.0.jar
+            --classpath=/home/soudey/liquibase/lib/liquibase-azure-deps-4.33.0.jar \
             --defaults-file=mssql.liquibase.properties \
             --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
@@ -110,7 +110,7 @@ jobs:
       - name: Capture Pre-deployment Schema State (liquibase snapshot Command)
         run: | 
           liquibase snapshot \
-            --classpath=/home/soudey/liquibase/lib/liquibase-azure-deps-4.33.0.jar
+            --classpath=/home/soudey/liquibase/lib/liquibase-azure-deps-4.33.0.jar \
             --defaults-file=mssql.liquibase.properties \
             --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
