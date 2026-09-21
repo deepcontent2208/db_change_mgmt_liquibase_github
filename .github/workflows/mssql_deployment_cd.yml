@@ -32,6 +32,12 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Get Managed Identity Credentials
+        run: |
+          PG_PWD=$(curl -s "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fossrdbms-aad.database.windows.net" -H Metadata:true | jq -r .access_token)
+          echo "::add-mask::$PG_PWD"
+          echo "LIQUIBASE_COMMAND_PASSWORD=$PG_PWD" >> "$GITHUB_ENV"
+
       - name: Auto populate database connection parameters
         id: get-credentials
         run: |
@@ -42,21 +48,21 @@ jobs:
               echo "db_host=${{ secrets.MSSQL_DEV_DB_HOST }}" >> $GITHUB_OUTPUT
               echo "db_name=${{ secrets.MSSQL_DEV_DB_NAME }}" >> $GITHUB_OUTPUT
               echo "db_user=${{ secrets.MSSQL_DEV_DB_USER }}" >> $GITHUB_OUTPUT
-              echo "db_pass=${{ secrets.MSSQL_DEV_DB_PASSWORD }}" >> $GITHUB_OUTPUT
+              # echo "db_pass=${{ secrets.MSSQL_DEV_DB_PASSWORD }}" >> $GITHUB_OUTPUT
               echo "mssql_db_schema=dbo_dev" >> $GITHUB_OUTPUT
               ;;
             QA)
               echo "db_host=${{ secrets.MSSQL_QA_DB_HOST }}" >> $GITHUB_OUTPUT
               echo "db_name=${{ secrets.MSSQL_QA_DB_NAME }}" >> $GITHUB_OUTPUT
               echo "db_user=${{ secrets.MSSQL_QA_DB_USER }}" >> $GITHUB_OUTPUT
-              echo "db_pass=${{ secrets.MSSQL_QA_DB_PASSWORD }}" >> $GITHUB_OUTPUT
+              # echo "db_pass=${{ secrets.MSSQL_QA_DB_PASSWORD }}" >> $GITHUB_OUTPUT
               echo "mssql_db_schema=dbo_qa" >> $GITHUB_OUTPUT
               ;;
             PROD)
               echo "db_host=${{ secrets.MSSQL_PROD_DB_HOST }}" >> $GITHUB_OUTPUT
               echo "db_name=${{ secrets.MSSQL_PROD_DB_NAME }}" >> $GITHUB_OUTPUT
               echo "db_user=${{ secrets.MSSQL_PROD_DB_USER }}" >> $GITHUB_OUTPUT
-              echo "db_pass=${{ secrets.MSSQL_PROD_DB_PASSWORD }}" >> $GITHUB_OUTPUT
+              # echo "db_pass=${{ secrets.MSSQL_PROD_DB_PASSWORD }}" >> $GITHUB_OUTPUT
               echo "mssql_db_schema=dbo_prod" >> $GITHUB_OUTPUT
               ;;
           esac
@@ -85,7 +91,7 @@ jobs:
             --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --changelog-file=mssql_changelog/sqldb.changelog.sql \
-            --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};user=${{ steps.get-credentials.outputs.db_user }};password=${{ steps.get-credentials.outputs.db_pass }};encrypt=true;trustServerCertificate=true;" \
+            --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};authentication=ActiveDirectoryManagedIdentity;encrypt=true;trustServerCertificate=true;" \
             -Dschema_name=${{ steps.get-credentials.outputs.mssql_db_schema }}
       
       - name: Database Pre-check (liquibase validate Command)
@@ -95,7 +101,7 @@ jobs:
             --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --changelog-file=mssql_changelog/sqldb.changelog.sql \
-            --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};user=${{ steps.get-credentials.outputs.db_user }};password=${{ steps.get-credentials.outputs.db_pass }};encrypt=true;trustServerCertificate=true;" \
+            --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};authentication=ActiveDirectoryManagedIdentity;encrypt=true;trustServerCertificate=true;" \
             -Dschema_name=${{ steps.get-credentials.outputs.mssql_db_schema }}
 
 
@@ -105,7 +111,7 @@ jobs:
             --defaults-file=mssql.liquibase.properties \
             --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
-            --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};user=${{ steps.get-credentials.outputs.db_user }};password=${{ steps.get-credentials.outputs.db_pass }};encrypt=true;trustServerCertificate=true;" \
+            --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};authentication=ActiveDirectoryManagedIdentity;encrypt=true;trustServerCertificate=true;" \
             --snapshot-format=json \
             --output-file=pre_deploy_snapshot_${{steps.get-credentials.outputs.db_name}}.json
 
@@ -117,7 +123,7 @@ jobs:
             --changelog-file=mssql_changelog/sqldb.changelog.sql \
             --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
-            --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};user=${{ steps.get-credentials.outputs.db_user }};password=${{ steps.get-credentials.outputs.db_pass }};encrypt=true;trustServerCertificate=true;" \
+            --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};authentication=ActiveDirectoryManagedIdentity;encrypt=true;trustServerCertificate=true;" \
             -Dschema_name=${{ steps.get-credentials.outputs.mssql_db_schema }}
 
       - name: Tag Database Changes (liquibase tag Command)
@@ -126,7 +132,7 @@ jobs:
             --defaults-file=mssql.liquibase.properties \
             --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
-            --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};user=${{ steps.get-credentials.outputs.db_user }};password=${{ steps.get-credentials.outputs.db_pass }};encrypt=true;trustServerCertificate=true;" \
+            --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};authentication=ActiveDirectoryManagedIdentity;encrypt=true;trustServerCertificate=true;" \
             --tag=${{ steps.generate-rollback-tag.outputs.rollback_tag }}
 
 
@@ -136,7 +142,7 @@ jobs:
             --defaults-file=mssql.liquibase.properties \
             --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
-            --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};user=${{ steps.get-credentials.outputs.db_user }};password=${{ steps.get-credentials.outputs.db_pass }};encrypt=true;trustServerCertificate=true;" \
+            --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};authentication=ActiveDirectoryManagedIdentity;encrypt=true;trustServerCertificate=true;" \
             --snapshot-format=json \
             --output-file=post_deploy_snapshot_${{steps.get-credentials.outputs.db_name}}.json
 
@@ -147,4 +153,4 @@ jobs:
             --defaults-file=mssql.liquibase.properties \
             --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
             --reference-url="offline:mssql?snapshot=pre_deploy_snapshot_${{steps.get-credentials.outputs.db_name}}.json" \
-            --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};user=${{ steps.get-credentials.outputs.db_user }};password=${{ steps.get-credentials.outputs.db_pass }};encrypt=true;trustServerCertificate=true;"
+            --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};authentication=ActiveDirectoryManagedIdentity;encrypt=true;trustServerCertificate=true;"
