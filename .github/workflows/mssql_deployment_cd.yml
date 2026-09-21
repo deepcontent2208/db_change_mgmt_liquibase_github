@@ -34,9 +34,9 @@ jobs:
 
       - name: Get Managed Identity Credentials
         run: |
-          PG_PWD=$(curl -s "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fossrdbms-aad.database.windows.net" -H Metadata:true | jq -r .access_token)
-          echo "::add-mask::$PG_PWD"
-          echo "LIQUIBASE_COMMAND_PASSWORD=$PG_PWD" >> "$GITHUB_ENV"
+          MSSQL_PWD=$(curl -s "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fossrdbms-aad.database.windows.net" -H Metadata:true | jq -r .access_token)
+          echo "::add-mask::$MSSQL_PWD"
+          # echo "LIQUIBASE_COMMAND_PASSWORD=$MSSQL_PWD" >> "$GITHUB_ENV"
 
       - name: Auto populate database connection parameters
         id: get-credentials
