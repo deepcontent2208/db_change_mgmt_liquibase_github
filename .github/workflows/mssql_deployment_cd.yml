@@ -78,19 +78,13 @@ jobs:
         run: |
           echo "Target environment: ${{ github.event.inputs.environment }}"
 
-      # - name: Setup Liquibase
-      #   uses: liquibase/setup-liquibase@v3
-      #   with: 
-      #     version: '4.33.0'
-      #     edition: "community"
-
-      - name: Get azure-deps directory path
-        shell: bash
-        run: |
-          LIQUIBASE_BIN=$(readlink -f $(command -v liquibase))
-          LIQUIBASE_HOME=$(dirname "${LIQUIBASE_BIN}")
-          echo "LIQUIBASE_HOME=$LIQUIBASE_HOME" >> "$GITHUB_ENV"
-          echo "Liquibase home: " $LIQUIBASE_HOME
+      # - name: Get azure-deps directory path
+      #   shell: bash
+      #   run: |
+      #     LIQUIBASE_BIN=$(readlink -f $(command -v liquibase))
+      #     LIQUIBASE_HOME=$(dirname "${LIQUIBASE_BIN}")
+      #     echo "LIQUIBASE_HOME=$LIQUIBASE_HOME" >> "$GITHUB_ENV"
+      #     echo "Liquibase home: " $LIQUIBASE_HOME
       
       - name: Check Liquibase Changes Log Validity (liquibase validate Command)
         run: |
