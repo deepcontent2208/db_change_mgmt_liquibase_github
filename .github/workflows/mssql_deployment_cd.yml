@@ -87,8 +87,8 @@ jobs:
       - name: Get azure-deps directory path
         shell: bash
         run: |
-          LIQUIBASE_BIN="$(readlink -f "$(command -v liquibase)")"
-          LIQUIBASE_HOME="$(dirname "$LIQUIBASE_BIN")"
+          LIQUIBASE_BIN=$(readlink -f $(command -v liquibase))
+          LIQUIBASE_HOME=$(dirname "${LIQUIBASE_BIN}")
           echo "LIQUIBASE_HOME=$LIQUIBASE_HOME" >> "$GITHUB_ENV"
           echo "Liquibase home: $LIQUIBASE_HOME
       
