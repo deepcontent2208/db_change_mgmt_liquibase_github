@@ -85,7 +85,7 @@ CREATE INDEX products_prd_id_ix1 ON ${schema_name}.products (product_id);
 --changeset deep:3
 --comment: Create indexes for the tables - customers, invoices, orders, products.
 CREATE TABLE order_items (
-  order_item_no varchar(40),
+  order_item_no varchar(40) not null,
   order_no varchar(40),
   order_item_qty int,
   order_item_price decimal(10,2)
