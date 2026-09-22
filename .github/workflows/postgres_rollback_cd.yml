@@ -12,6 +12,12 @@ on:
           - dev
           - qa
           - prod
+
+      schema_name:
+        description: "Schema Name"
+        required: true
+        default: "public"
+        type: string
       
       rollback_tag:
         description: 'Enter the target tag for rollback. It is case sensitive.'
