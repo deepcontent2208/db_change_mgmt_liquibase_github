@@ -97,7 +97,7 @@ jobs:
           liquibase rollback \
             --changelog-file=postgres_changelog/postgresdb.changelog.sql \
             --url="jdbc:postgresql://${{ steps.get-host-dbname.outputs.db_host }}:5432/${{ steps.get-host-dbname.outputs.db_name }}?sslmode=require" \
-            --username="${{ steps.get-host-dbname.outputs.db_user }}"
+            --username="${{ steps.get-host-dbname.outputs.db_user }}" \
             --tag="${{ github.event.inputs.rollback_tag }}" \
             -Dschema_name="${{ github.event.inputs.schema_name }}"
 
