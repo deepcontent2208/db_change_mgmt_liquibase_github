@@ -1,0 +1,130 @@
+trigger: none
+pr: none
+
+parameters:
+- name: environment
+  displayName: "Target environment"
+  type: string
+  default: dev
+  values:
+    - dev
+    - qa
+    - prod
+  
+- name: db_host
+  displayName: "Database host name"
+  type: string
+  default: 
+
+- name: db_name
+  displayName: "Database name"
+  type: string
+  default: 
+
+- name: db_user
+  displayName: "Database user"
+  type: string
+  default: db-vm
+      
+- name: rollback_tag
+  displayName: 'Enter the target tag for rollback. It is case sensitive.'
+  type: string
+
+
+jobs:
+- job: PostgreSQLDatabaseRollback
+  displayName: "PostgreSQL Database Rollback (Liquibase CD)"
+
+  pool:
+    name: "db-vm-self-hosted-agent"
+
+  # =========================================================
+  # Checkout Repository
+  # =========================================================
+  steps:
+  - checkout: self
+    displayName: "Checkout Repository"
+
+  # =========================================================
+  # Get PostgreSQL Managed Identity access token
+  # =========================================================
+  - bash: |
+      PG_PWD=$(curl -s \
+        "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fossrdbms-aad.database.windows.net" \
+        -H Metadata:true | jq -r .access_token)
+
+      if [ -z "$PG_PWD" ] || [ "$PG_PWD" = "null" ]; then
+        echo "Failed to retrieve Managed Identity access token"
+        exit 1
+      fi
+
+      # Create a secret pipeline variable.
+      echo "##vso[task.setvariable variable=LIQUIBASE_COMMAND_PASSWORD;issecret=true]${PG_PWD}"
+
+      echo "Managed Identity access token acquired successfully."
+    displayName: "Get Managed Identity Credentials"
+
+  # =========================================================
+  # Determine DB connection information
+  # =========================================================
+  - bash: |
+      ENV_NAME_UPPER=$(echo "${{ parameters.environment }}" | tr '[:lower:]' '[:upper:]')
+
+      echo "Selected environment: ${ENV_NAME_UPPER}"
+
+      case "$ENV_NAME_UPPER" in
+
+        DEV)
+          echo "##vso[task.setvariable variable=db_host;isOutput=true]${{ parameters.db_host }}"
+          echo "##vso[task.setvariable variable=db_name;isOutput=true]${{ parameters.db_name }}"
+          echo "##vso[task.setvariable variable=db_user;isOutput=true]${{ parameters.db_user }}"
+          ;;
+
+        QA)
+          echo "##vso[task.setvariable variable=db_host;isOutput=true]${{ parameters.db_host }}"
+          echo "##vso[task.setvariable variable=db_name;isOutput=true]${{ parameters.db_name }}"
+          echo "##vso[task.setvariable variable=db_user;isOutput=true]${{ parameters.db_user }}"
+          ;;
+
+        PROD)
+          echo "##vso[task.setvariable variable=db_host;isOutput=true]${{ parameters.db_host }}"
+          echo "##vso[task.setvariable variable=db_name;isOutput=true]${{ parameters.db_name }}"
+          echo "##vso[task.setvariable variable=db_user;isOutput=true]${{ parameters.db_user }}"
+          ;;
+
+        *)
+          echo "Invalid environment: ${ENV_NAME_UPPER}"
+          exit 1
+          ;;
+
+      esac
+    name: GetDatabaseDetails
+    displayName: "Auto populate database connection parameters"
+
+  # =========================================================
+  # Database Pre-check
+  # =========================================================
+  - bash: |
+      liquibase status --verbose \
+        --changelog-file=postgres_changelog/postgresdb.changelog.sql \
+        --url="jdbc:postgresql://$(GetDatabaseDetails.db_host):5432/$(GetDatabaseDetails.db_name)?sslmode=require" \
+        --username="$(GetDatabaseDetails.db_user)"
+    displayName: "Database Pre-check"
+    env:
+      LIQUIBASE_COMMAND_PASSWORD: $(LIQUIBASE_COMMAND_PASSWORD)
+
+
+  # =========================================================
+  # Apply database changes
+  # =========================================================
+  - bash: |
+      liquibase rollback \
+        --changelog-file=postgres_changelog/postgresdb.changelog.sql \
+        --url="jdbc:postgresql://$(GetDatabaseDetails.db_host):5432/$(GetDatabaseDetails.db_name)?sslmode=require" \
+        --username="$(GetDatabaseDetails.db_user)" \
+        --tag="${{ parameters.rollback_tag }}"
+    displayName: "Apply Database Rollback"
+    env:
+      LIQUIBASE_COMMAND_PASSWORD: $(LIQUIBASE_COMMAND_PASSWORD)
+
+           
