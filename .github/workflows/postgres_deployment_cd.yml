@@ -122,8 +122,7 @@ jobs:
           liquibase tag \
             --url="jdbc:postgresql://${{ steps.get-host-dbname.outputs.db_host }}:5432/${{ steps.get-host-dbname.outputs.db_name }}?sslmode=require" \
             --username="${{ steps.get-host-dbname.outputs.db_user }}" \
-            --tag="${{ steps.generate-rollback-tag.outputs.rollback_tag }}" \
-            -Dschema_name="${{ github.event.inputs.schema_name }}"
+            --tag="${{ steps.generate-rollback-tag.outputs.rollback_tag }}"
 
       - name: Capture Post-deployment Schema State (liquibase snapshot Command)
         run: |
