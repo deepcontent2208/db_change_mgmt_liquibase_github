@@ -55,15 +55,15 @@ ALTER TABLE ${schema_name}.products ADD PRIMARY KEY (product_id);
 
 --changeset deep:2
 --comment: Create indexes for the tables - customers, invoices, orders, products.
-CREATE INDEX ${schema_name}.customers_cust_id_ix1 ON ${schema_name}.customers (cust_id);
-CREATE INDEX ${schema_name}.customers_cust_email_ix2 ON ${schema_name}.customers (cust_email);
-CREATE INDEX ${schema_name}.customers_cust_phone_ix3 ON ${schema_name}.customers (cust_phone);
+CREATE INDEX customers_cust_id_ix1 ON ${schema_name}.customers (cust_id);
+CREATE INDEX customers_cust_email_ix2 ON ${schema_name}.customers (cust_email);
+CREATE INDEX customers_cust_phone_ix3 ON ${schema_name}.customers (cust_phone);
 
-CREATE INDEX ${schema_name}.invoices_cust_id_ix1 ON ${schema_name}.invoices (customer_id);
-CREATE INDEX ${schema_name}.invoices_ordr_no_ix2 ON ${schema_name}.invoices (order_no);
+CREATE INDEX invoices_cust_id_ix1 ON ${schema_name}.invoices (customer_id);
+CREATE INDEX invoices_ordr_no_ix2 ON ${schema_name}.invoices (order_no);
 
-CREATE INDEX ${schema_name}.orders_ordr_no_ix1 ON ${schema_name}.orders (order_no);
-CREATE INDEX ${schema_name}.orders_cust_id_ix2 ON ${schema_name}.orders (customer_id);
+CREATE INDEX orders_ordr_no_ix1 ON ${schema_name}.orders (order_no);
+CREATE INDEX orders_cust_id_ix2 ON ${schema_name}.orders (customer_id);
 
 CREATE INDEX products_prd_id_ix1 ON ${schema_name}.products (product_id);
 
