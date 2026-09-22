@@ -120,4 +120,5 @@ ALTER TABLE ${schema_name}.order_items ADD CONSTRAINT fk_order_items_orders
 FOREIGN KEY (order_no)
 REFERENCES ${schema_name}.orders (order_no);
 
---rollback ALTER TABLE ${schema_name}.order_items;
+--rollback ALTER TABLE ${schema_name}.order_items DROP CONSTRAINT fk_order_items_orders;
+--rollback DROP TABLE ${schema_name}.order_items;
