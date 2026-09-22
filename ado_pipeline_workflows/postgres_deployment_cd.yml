@@ -1,0 +1,247 @@
+trigger: none
+pr: none
+
+parameters:
+- name: environment
+  displayName: "Target environment"
+  type: string
+  default: dev
+  values:
+    - dev
+    - qa
+    - prod
+  
+- name: db_host
+  displayName: "Database host name"
+  type: string
+  default: 
+
+- name: db_name
+  displayName: "Database name"
+  type: string
+  default: 
+
+- name: db_user
+  displayName: "Database user"
+  type: string
+  default: postgres
+
+jobs:
+- job: PostgreSQLDatabaseDeployment
+  displayName: "PostgreSQL Database Deployment (Liquibase CD)"
+
+  pool:
+    name: "db-vm-self-hosted-agent"
+
+
+  # =========================================================
+  # Checkout Repository
+  # =========================================================
+  steps:
+  - checkout: self
+    displayName: "Checkout Repository"
+
+  # =========================================================
+  # Generate rollback tag
+  # =========================================================
+  - bash: |
+      timestamp=$(date -u +"%Y%m%d%H%M%S")
+      uuid_tmp=$(uuidgen | tr '[:upper:]' '[:lower:]')
+
+      rollback_tag="rb-${{ parameters.environment }}-${timestamp}-${uuid_tmp}"
+
+      echo "Generated rollback tag: ${rollback_tag}"
+
+      echo "##vso[task.setvariable variable=rollback_tag;isOutput=true]${rollback_tag}"
+    name: GenerateRollbackTag
+    displayName: 'Generate "rollback" tag'
+
+
+  # =========================================================
+  # Get PostgreSQL Managed Identity access token
+  # =========================================================
+  - bash: |
+      PG_PWD=$(curl -s \
+        "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fossrdbms-aad.database.windows.net" \
+        -H Metadata:true | jq -r .access_token)
+
+      if [ -z "$PG_PWD" ] || [ "$PG_PWD" = "null" ]; then
+        echo "Failed to retrieve Managed Identity access token"
+        exit 1
+      fi
+
+      # Create a secret pipeline variable.
+      echo "##vso[task.setvariable variable=LIQUIBASE_COMMAND_PASSWORD;issecret=true]${PG_PWD}"
+
+      echo "Managed Identity access token acquired successfully."
+    displayName: "Get Managed Identity Credentials"
+
+
+  # =========================================================
+  # Determine DB connection information
+  # =========================================================
+  - bash: |
+      ENV_NAME_UPPER=$(echo "${{ parameters.environment }}" | tr '[:lower:]' '[:upper:]')
+
+      echo "Selected environment: ${ENV_NAME_UPPER}"
+
+      case "$ENV_NAME_UPPER" in
+
+        DEV)
+          echo "##vso[task.setvariable variable=db_host;isOutput=true]${{ parameters.db_host }}"
+          echo "##vso[task.setvariable variable=db_name;isOutput=true]${{ parameters.db_name }}"
+          echo "##vso[task.setvariable variable=db_user;isOutput=true]${{ parameters.db_user }}"
+          ;;
+
+        QA)
+          echo "##vso[task.setvariable variable=db_host;isOutput=true]${{ parameters.db_host }}"
+          echo "##vso[task.setvariable variable=db_name;isOutput=true]${{ parameters.db_name }}"
+          echo "##vso[task.setvariable variable=db_user;isOutput=true]${{ parameters.db_user }}"
+          ;;
+
+        PROD)
+          echo "##vso[task.setvariable variable=db_host;isOutput=true]${{ parameters.db_host }}"
+          echo "##vso[task.setvariable variable=db_name;isOutput=true]${{ parameters.db_name }}"
+          echo "##vso[task.setvariable variable=db_user;isOutput=true]${{ parameters.db_user }}"
+          ;;
+
+        *)
+          echo "Invalid environment: ${ENV_NAME_UPPER}"
+          exit 1
+          ;;
+
+      esac
+    name: GetDatabaseDetails
+    displayName: "Auto populate database connection parameters"
+
+
+  # =========================================================
+  # Verify selected environment
+  # =========================================================
+  - bash: |
+      echo "Target environment: ${{ parameters.environment }}"
+      echo "Database host: $(GetDatabaseDetails.db_host)"
+      echo "Database name: $(GetDatabaseDetails.db_name)"
+      echo "Database user: $(GetDatabaseDetails.db_user)"
+    displayName: "Verify Database Connection Details"
+
+  # =========================================================
+  # Install Liquibase 4.33.0
+  #
+  # Assumption:
+  # Self-hosted Linux agent with curl/tar available.
+  # =========================================================
+  - bash: |
+      set -e
+
+      LIQUIBASE_VERSION="4.33.0"
+
+      echo "Installing Liquibase ${LIQUIBASE_VERSION}"
+
+      curl -L \
+        "https://github.com/liquibase/liquibase/releases/download/v${LIQUIBASE_VERSION}/liquibase-${LIQUIBASE_VERSION}.tar.gz" \
+        -o liquibase.tar.gz
+
+      mkdir -p "$(Agent.TempDirectory)/liquibase"
+
+      tar -xzf liquibase.tar.gz \
+        -C "$(Agent.TempDirectory)/liquibase"
+
+      echo "##vso[task.prependpath]$(Agent.TempDirectory)/liquibase"
+      "$(Agent.TempDirectory)/liquibase/liquibase" --version
+
+    displayName: "Setup Liquibase"
+
+  # =========================================================
+  # Liquibase Validate
+  # =========================================================
+  - bash: |
+      liquibase validate \
+        --changelog-file=postgres_changelog/postgresdb.changelog.sql \
+        --url="jdbc:postgresql://$(GetDatabaseDetails.db_host):5432/$(GetDatabaseDetails.db_name)?sslmode=require" \
+        --username="$(GetDatabaseDetails.db_user)"
+    displayName: "Check Liquibase Change Log Validity"
+    env:
+      LIQUIBASE_COMMAND_PASSWORD: $(LIQUIBASE_COMMAND_PASSWORD)
+
+
+  # =========================================================
+  # Database Pre-check
+  # =========================================================
+  - bash: |
+      liquibase status --verbose \
+        --changelog-file=postgres_changelog/postgresdb.changelog.sql \
+        --url="jdbc:postgresql://$(GetDatabaseDetails.db_host):5432/$(GetDatabaseDetails.db_name)?sslmode=require" \
+        --username="$(GetDatabaseDetails.db_user)"
+    displayName: "Database Pre-check"
+    env:
+      LIQUIBASE_COMMAND_PASSWORD: $(LIQUIBASE_COMMAND_PASSWORD)
+
+
+  # =========================================================
+  # Capture pre-deployment schema
+  # =========================================================
+  - bash: |
+      liquibase snapshot \
+        --url="jdbc:postgresql://$(GetDatabaseDetails.db_host):5432/$(GetDatabaseDetails.db_name)?sslmode=require" \
+        --username="$(GetDatabaseDetails.db_user)" \
+        --snapshot-format=json \
+        --output-file="pre_deploy_snapshot_$(GetDatabaseDetails.db_name).json"
+    displayName: "Capture Pre-deployment Schema State"
+    env:
+      LIQUIBASE_COMMAND_PASSWORD: $(LIQUIBASE_COMMAND_PASSWORD)
+
+
+  # =========================================================
+  # Apply database changes
+  # =========================================================
+  - bash: |
+      liquibase update \
+        --changelog-file=postgres_changelog/postgresdb.changelog.sql \
+        --url="jdbc:postgresql://$(GetDatabaseDetails.db_host):5432/$(GetDatabaseDetails.db_name)?sslmode=require" \
+        --username="$(GetDatabaseDetails.db_user)"
+    displayName: "Apply Database Changes"
+    env:
+      LIQUIBASE_COMMAND_PASSWORD: $(LIQUIBASE_COMMAND_PASSWORD)
+
+
+  # =========================================================
+  # Tag deployed database version
+  # =========================================================
+  - bash: |
+      echo "Tagging database with: $(GenerateRollbackTag.rollback_tag)"
+
+      liquibase tag \
+        --url="jdbc:postgresql://$(GetDatabaseDetails.db_host):5432/$(GetDatabaseDetails.db_name)?sslmode=require" \
+        --username="$(GetDatabaseDetails.db_user)" \
+        --tag="$(GenerateRollbackTag.rollback_tag)"
+    displayName: "Tag Database Changes"
+    env:
+      LIQUIBASE_COMMAND_PASSWORD: $(LIQUIBASE_COMMAND_PASSWORD)
+
+
+  # =========================================================
+  # Capture post-deployment schema
+  # =========================================================
+  - bash: |
+      liquibase snapshot \
+        --url="jdbc:postgresql://$(GetDatabaseDetails.db_host):5432/$(GetDatabaseDetails.db_name)?sslmode=require" \
+        --username="$(GetDatabaseDetails.db_user)" \
+        --snapshot-format=json \
+        --output-file="post_deploy_snapshot_$(GetDatabaseDetails.db_name).json"
+    displayName: "Capture Post-deployment Schema State"
+    env:
+      LIQUIBASE_COMMAND_PASSWORD: $(LIQUIBASE_COMMAND_PASSWORD)
+
+
+  # =========================================================
+  # Database schema diff
+  # =========================================================
+  - bash: |
+      liquibase diff \
+        --reference-url="offline:postgresql?snapshot=pre_deploy_snapshot_$(GetDatabaseDetails.db_name).json" \
+        --url="jdbc:postgresql://$(GetDatabaseDetails.db_host):5432/$(GetDatabaseDetails.db_name)?sslmode=require" \
+        --username="$(GetDatabaseDetails.db_user)"
+    displayName: "Check Database Schema Difference Before & After Deployment"
+    env:
+      LIQUIBASE_COMMAND_PASSWORD: $(LIQUIBASE_COMMAND_PASSWORD)
