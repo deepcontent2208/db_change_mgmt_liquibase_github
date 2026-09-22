@@ -1,0 +1,224 @@
+trigger: none
+pr: none
+
+parameters:
+- name: environment
+  displayName: "Target environment"
+  type: string
+  default: dev
+  values:
+    - dev
+    - qa
+    - prod
+  
+- name: db_host
+  displayName: "Database host name"
+  type: string
+  default: 
+
+- name: db_name
+  displayName: "Database name"
+  type: string
+  default: 
+
+- name: db_user
+  displayName: "Database user"
+  type: string
+  default: db-vm
+
+- name: mssql_db_schema
+  displayName: "SQL Server schema name"
+  type: string
+  default: dbo_dev
+
+
+jobs:
+- job: AzureSQLDatabaseDeployment
+  displayName: "Azure SQL Database Deployment (Liquibase CD)"
+
+  pool:
+    name: "db-vm-self-hosted-agent"
+
+
+  #=========================================================
+  # Checkout Repository
+  #=========================================================
+  steps:
+  - checkout: self
+    displayName: "Checkout Repository"
+
+  # =========================================================
+  # Generate rollback tag
+  # =========================================================
+  - bash: |
+      timestamp=$(date -u +"%Y%m%d%H%M%S")
+      uuid_tmp=$(uuidgen | tr '[:upper:]' '[:lower:]')
+
+      rollback_tag="rb-${{ parameters.environment }}-${timestamp}-${uuid_tmp}"
+
+      echo "Generated rollback tag: ${rollback_tag}"
+
+      echo "##vso[task.setvariable variable=rollback_tag;isOutput=true]${rollback_tag}"
+    name: GenerateRollbackTag
+    displayName: 'Generate "rollback" tag'
+
+
+  # =========================================================
+  # Get Azure SQL Managed Identity access token
+  # =========================================================
+  - bash: |
+      MSSQL_PWD=$(curl -s \
+        "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fossrdbms-aad.database.windows.net" \
+        -H Metadata:true | jq -r .access_token)
+
+      if [ -z "$MSSQL_PWD" ] || [ "$MSSQL_PWD" = "null" ]; then
+        echo "Failed to retrieve Managed Identity access token"
+        exit 1
+      fi
+
+      # Create a secret pipeline variable.
+      echo "##vso[task.setvariable variable=LIQUIBASE_COMMAND_PASSWORD;issecret=true]${MSSQL_PWD}"
+
+      echo "Managed Identity access token acquired successfully."
+    displayName: "Get Managed Identity Credentials"
+
+
+  # =========================================================
+  # Determine DB connection information
+  # =========================================================
+  - bash: |
+      ENV_NAME_UPPER=$(echo "${{ parameters.environment }}" | tr '[:lower:]' '[:upper:]')
+
+      echo "Selected environment: ${ENV_NAME_UPPER}"
+
+      case "$ENV_NAME_UPPER" in
+
+        DEV)
+          echo "##vso[task.setvariable variable=db_host;isOutput=true]${{ parameters.db_host }}"
+          echo "##vso[task.setvariable variable=db_name;isOutput=true]${{ parameters.db_name }}"
+          echo "##vso[task.setvariable variable=db_user;isOutput=true]${{ parameters.db_user }}"
+          echo "##vso[task.setvariable variable=mssql_db_schema;isOutput=true]${{ parameters.mssql_db_schema }}"
+          ;;
+
+        QA)
+          echo "##vso[task.setvariable variable=db_host;isOutput=true]${{ parameters.db_host }}"
+          echo "##vso[task.setvariable variable=db_name;isOutput=true]${{ parameters.db_name }}"
+          echo "##vso[task.setvariable variable=db_user;isOutput=true]${{ parameters.db_user }}"
+          echo "##vso[task.setvariable variable=mssql_db_schema;isOutput=true]${{ parameters.mssql_db_schema }}"
+          ;;
+
+        PROD)
+          echo "##vso[task.setvariable variable=db_host;isOutput=true]${{ parameters.db_host }}"
+          echo "##vso[task.setvariable variable=db_name;isOutput=true]${{ parameters.db_name }}"
+          echo "##vso[task.setvariable variable=db_user;isOutput=true]${{ parameters.db_user }}"
+          echo "##vso[task.setvariable variable=mssql_db_schema;isOutput=true]${{ parameters.mssql_db_schema }}"
+          ;;
+
+        *)
+          echo "Invalid environment: ${ENV_NAME_UPPER}"
+          exit 1
+          ;;
+
+      esac
+    name: GetDatabaseDetails
+    displayName: "Auto populate database connection parameters"
+
+
+  # =========================================================
+  # Verify selected environment
+  # =========================================================
+  # - bash: |
+  #     echo "Target environment: ${{ parameters.environment }}"
+  #     echo "Database host: $(GetDatabaseDetails.db_host)"
+  #     echo "Database name: $(GetDatabaseDetails.db_name)"
+  #     echo "Database user: $(GetDatabaseDetails.db_user)"
+  #   displayName: "Verify Database Connection Details"
+
+  # =========================================================
+  # Liquibase Validate
+  # =========================================================
+  - bash: |
+      liquibase validate \
+        --defaults-file=mssql.liquibase.properties \
+        --changelog-file=mssql_changelog/sqldb.changelog.sql \
+        --default-schema-name="$(GetDatabaseDetails.mssql_db_schema)" \
+        --liquibase-schema-name="$(GetDatabaseDetails.mssql_db_schema)" \
+        --url="jdbc:sqlserver://$(GetDatabaseDetails.db_host):1433;databaseName=$(GetDatabaseDetails.db_name);authentication=ActiveDirectoryManagedIdentity;encrypt=true;trustServerCertificate=true;" \
+        -Dschema_name="$(GetDatabaseDetails.mssql_db_schema)"
+    displayName: "Liquibase Validate"
+
+  # =========================================================
+  # Database Pre-check
+  # =========================================================
+  - bash: |
+      liquibase status \
+        --defaults-file=mssql.liquibase.properties \
+        --changelog-file=mssql_changelog/sqldb.changelog.sql \
+        --default-schema-name="$(GetDatabaseDetails.mssql_db_schema)" \
+        --liquibase-schema-name="$(GetDatabaseDetails.mssql_db_schema)" \
+        --url="jdbc:sqlserver://$(GetDatabaseDetails.db_host):1433;databaseName=$(GetDatabaseDetails.db_name);authentication=ActiveDirectoryManagedIdentity;encrypt=true;trustServerCertificate=true;" \
+        -Dschema_name="$(GetDatabaseDetails.mssql_db_schema)"
+    displayName: "Database Pre-check"
+
+  # =========================================================
+  # Capture pre-deployment schema
+  # =========================================================
+  - bash: |
+      liquibase snapshot \
+        --defaults-file=mssql.liquibase.properties \
+        --default-schema-name="$(GetDatabaseDetails.mssql_db_schema)" \
+        --liquibase-schema-name="$(GetDatabaseDetails.mssql_db_schema)" \
+        --url="jdbc:sqlserver://$(GetDatabaseDetails.db_host):1433;databaseName=$(GetDatabaseDetails.db_name);authentication=ActiveDirectoryManagedIdentity;encrypt=true;trustServerCertificate=true;" \
+        --snapshot-format=json \
+        --output-file="pre_deploy_snapshot_$(GetDatabaseDetails.db_name).json"
+    displayName: "Capture pre-deployment schema"
+
+  # =========================================================
+  # Apply database changes
+  # =========================================================          
+  - bash: |
+      liquibase update \
+        --defaults-file=mssql.liquibase.properties \
+        --changelog-file=mssql_changelog/sqldb.changelog.sql \
+        --default-schema-name="$(GetDatabaseDetails.mssql_db_schema)" \
+        --liquibase-schema-name="$(GetDatabaseDetails.mssql_db_schema)" \
+        --url="jdbc:sqlserver://$(GetDatabaseDetails.db_host):1433;databaseName=$(GetDatabaseDetails.db_name);authentication=ActiveDirectoryManagedIdentity;encrypt=true;trustServerCertificate=true;" \
+        -Dschema_name="$(GetDatabaseDetails.mssql_db_schema)"
+    displayName: "Apply database changes"
+
+  # =========================================================
+  # Tag deployed database version
+  # =========================================================
+  - bash: |
+      liquibase tag \
+        --defaults-file=mssql.liquibase.properties \
+        --default-schema-name="$(GetDatabaseDetails.mssql_db_schema)" \
+        --liquibase-schema-name="$(GetDatabaseDetails.mssql_db_schema)" \
+        --url="jdbc:sqlserver://$(GetDatabaseDetails.db_host):1433;databaseName=$(GetDatabaseDetails.db_name);authentication=ActiveDirectoryManagedIdentity;encrypt=true;trustServerCertificate=true;" \
+        --tag="$(GenerateRollbackTag.rollback_tag)"
+    displayName: "Apply database tag"
+
+  # =========================================================
+  # Capture post-deployment schema
+  # =========================================================
+  - bash: |
+      liquibase snapshot \
+        --defaults-file=mssql.liquibase.properties \
+        --default-schema-name="$(GetDatabaseDetails.mssql_db_schema)" \
+        --liquibase-schema-name="$(GetDatabaseDetails.mssql_db_schema)" \
+        --url="jdbc:sqlserver://$(GetDatabaseDetails.db_host):1433;databaseName=$(GetDatabaseDetails.db_name);authentication=ActiveDirectoryManagedIdentity;encrypt=true;trustServerCertificate=true;" \
+        --snapshot-format=json \
+        --output-file="post_deploy_snapshot_$(GetDatabaseDetails.db_name).json"
+    displayName: "Capture post-deployment schema"
+
+  # =========================================================
+  # Database schema diff
+  # =========================================================
+  - bash: |
+      liquibase diff \
+        --defaults-file=mssql.liquibase.properties \
+        --default-schema-name="$(GetDatabaseDetails.mssql_db_schema)" \
+        --reference-url="offline:mssql?snapshot=pre_deploy_snapshot_$(GetDatabaseDetails.db_name).json" \
+        --url="jdbc:sqlserver://$(GetDatabaseDetails.db_host):1433;databaseName=$(GetDatabaseDetails.db_name);authentication=ActiveDirectoryManagedIdentity;encrypt=true;trustServerCertificate=true;"
+    displayName: "Report database schema changes pre and post deployment"
+      
