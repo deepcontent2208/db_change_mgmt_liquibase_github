@@ -13,6 +13,12 @@ on:
           - qa
           - prod
 
+      schema_name:
+        description: "Schema Name"
+        required: true
+        default: "public"
+        type: string
+  
 jobs:
   deploy:
     runs-on: [self-hosted]
