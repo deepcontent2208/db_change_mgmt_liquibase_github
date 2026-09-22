@@ -81,14 +81,16 @@ jobs:
           liquibase validate \
             --changelog-file=postgres_changelog/postgresdb.changelog.sql \
             --url="jdbc:postgresql://${{ steps.get-host-dbname.outputs.db_host }}:5432/${{ steps.get-host-dbname.outputs.db_name }}?sslmode=require" \
-            --username="${{ steps.get-host-dbname.outputs.db_user }}" 
+            --username="${{ steps.get-host-dbname.outputs.db_user }}" \
+            -Dschema_name="${{ github.event.inputs.schema_name }}"
       
       - name: Database Pre-check (liquibase validate Command)
         run: | 
           liquibase status --verbose \
             --changelog-file=postgres_changelog/postgresdb.changelog.sql \
             --url="jdbc:postgresql://${{ steps.get-host-dbname.outputs.db_host }}:5432/${{ steps.get-host-dbname.outputs.db_name }}?sslmode=require" \
-            --username="${{ steps.get-host-dbname.outputs.db_user }}"
+            --username="${{ steps.get-host-dbname.outputs.db_user }}" \
+            -Dschema_name="${{ github.event.inputs.schema_name }}"
         
       - name: Apply Database Rollback (liquibase rollback Command)
         run: |
@@ -96,6 +98,7 @@ jobs:
             --changelog-file=postgres_changelog/postgresdb.changelog.sql \
             --url="jdbc:postgresql://${{ steps.get-host-dbname.outputs.db_host }}:5432/${{ steps.get-host-dbname.outputs.db_name }}?sslmode=require" \
             --username="${{ steps.get-host-dbname.outputs.db_user }}"
-            --tag="${{ github.event.inputs.rollback_tag }}"
+            --tag="${{ github.event.inputs.rollback_tag }}" \
+            -Dschema_name="${{ github.event.inputs.schema_name }}"
 
            
