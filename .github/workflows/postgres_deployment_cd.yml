@@ -86,7 +86,8 @@ jobs:
           liquibase validate \
             --changelog-file=postgres_changelog/postgresdb.changelog.sql \
             --url="jdbc:postgresql://${{ steps.get-host-dbname.outputs.db_host }}:5432/${{ steps.get-host-dbname.outputs.db_name }}?sslmode=require" \
-            --username="${{ steps.get-host-dbname.outputs.db_user }}" 
+            --username="${{ steps.get-host-dbname.outputs.db_user }}" \
+            -Dschema_name="${{ github.event.inputs.schema_name }}"
             # --password="${{ steps.get-host-dbname.outputs.db_pass }}"
       
       - name: Database Pre-check (liquibase validate Command)
@@ -94,7 +95,8 @@ jobs:
           liquibase status --verbose \
             --changelog-file=postgres_changelog/postgresdb.changelog.sql \
             --url="jdbc:postgresql://${{ steps.get-host-dbname.outputs.db_host }}:5432/${{ steps.get-host-dbname.outputs.db_name }}?sslmode=require" \
-            --username="${{ steps.get-host-dbname.outputs.db_user }}"
+            --username="${{ steps.get-host-dbname.outputs.db_user }}" \
+            -Dschema_name="${{ github.event.inputs.schema_name }}"
             # --password="${{ steps.get-host-dbname.outputs.db_pass }}"
 
       - name: Capture Pre-deployment Schema State (liquibase snapshot Command)
@@ -111,7 +113,8 @@ jobs:
           liquibase update \
             --changelog-file=postgres_changelog/postgresdb.changelog.sql \
             --url="jdbc:postgresql://${{ steps.get-host-dbname.outputs.db_host }}:5432/${{ steps.get-host-dbname.outputs.db_name }}?sslmode=require" \
-            --username="${{ steps.get-host-dbname.outputs.db_user }}" 
+            --username="${{ steps.get-host-dbname.outputs.db_user }}" \
+            -Dschema_name="${{ github.event.inputs.schema_name }}"
             # --password="${{ steps.get-host-dbname.outputs.db_pass }}"
 
       - name: Tag Database Changes (liquibase tag Command)
@@ -119,7 +122,8 @@ jobs:
           liquibase tag \
             --url="jdbc:postgresql://${{ steps.get-host-dbname.outputs.db_host }}:5432/${{ steps.get-host-dbname.outputs.db_name }}?sslmode=require" \
             --username="${{ steps.get-host-dbname.outputs.db_user }}" \
-            --tag="${{ steps.generate-rollback-tag.outputs.rollback_tag }}"
+            --tag="${{ steps.generate-rollback-tag.outputs.rollback_tag }}" \
+            -Dschema_name="${{ github.event.inputs.schema_name }}"
 
       - name: Capture Post-deployment Schema State (liquibase snapshot Command)
         run: |
