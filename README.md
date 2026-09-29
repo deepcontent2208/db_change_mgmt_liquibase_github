@@ -16,13 +16,19 @@ This implementation architecture follows best practice of using same source code
 - Azure Managed Identity : Alternative of GitHub secrets. System or User Managed System Identity can be used instead of database user based authentication. It should be associated with the VM or Azure pipeline from where SQL statements would be executed.  
 - Database Servers: Target database environment where SQLs have to be deployed.
 
-#### Execution Chronology:
-Following are the chronological steps performed during implementation:
+#### Execution Chronology for GitHub Workflow:
+Following steps are performed during execution:
 1. Workflow is triggered automatically by commands like git push or PR merge etc.
 2. Job is picked up by HTTPS poll of self-hosted runner.
 3. Source code is checked out over https by runner in a temporary directory on Azure VM (where actinos-runner is hosted).
 4. Credentials are delivered as package over HTTPS. 
 5. Runner uses Liquibase configuration to deploy database change sets to target DB server using private connection.
+
+#### Execution Chronology for Azure Pipeline:
+Following steps are performed during execution:
+1. Events like git push, git commit etc. generates a webhook.
+2. The event is delivered to Azure DevOps automatically.
+3. Job is created and picked up by either Azure-hosted or self-hosted agent pool.
 
 ## Environment Setup
 #### Pre-requisite:
