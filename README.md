@@ -1,19 +1,19 @@
 
 ## Overview
-This document provides execution and setup details for implementing database change management system using Azure Database for PostgreSQL, GitHub Workflows & Actions and Liquibase open-source tool. 
+This document provides execution and setup details for implementing database change management system using Azure Database for PostgreSQL, Azure SQL Database, GitHub Workflows & Actions, Azure DevOps Pipeline and Liquibase open-source tool. 
 
 This implementation architecture follows best practice of using same source code for deployments across multiple environments, purpose is to reduce or remove configuration drift across environments (like Dev, QA, Prod etc). Following is the architecture diagram of this setup:
 
-<img width="1680" height="973" alt="image" src="https://github.com/user-attachments/assets/22cbc2fb-e549-4fb1-9c92-87d6693ab3fc" />
+<img width="1739" height="691" alt="image" src="https://github.com/user-attachments/assets/1d01ac65-842e-444f-b888-aa01c29d442a" />
 
-
-**Note**: The implementation architecture can be used across other databases like Azure HorizonDB, Oracle AI Database@Azure, SQL Server on VM etc.
+**Note**: The implementation architecture can be used across other databases like Azure HorizonDB, Oracle AI Database@Azure, SQL Server on VM, SQLAMI etc.
 
 #### Architecture Components:
-- GitHub Repo : Contains the source codes like SQL execution scripts, GitHub workflow configuration files, Liquibase configuration and Changeset details.
+- GitHub Repo : Contains the source codes like SQL execution scripts, GitHub workflow configuration files, Azure pipeline files, Liquibase configuration and Changeset details.
 - GitHub Actions : Contains events, workflow execution details, jobs and runner configuration details.
 - GitHub Secrets : Used to store database connection details and credentials. E.g. Server endpoint, database name, user, password etc.
 - Azure VM : Hosts multiple execution components - self-hosted GitHub Actions Runner, Database Client (like psql), Liquibase installation.
+- Azure Managed Identity : Alternative of GitHub secrets. System or User Managed System Identity can be used instead of database user based authentication. It should be associated with the VM or Azure pipeline from where SQL statements would be executed.  
 - Database Servers: Target database environment where SQLs have to be deployed.
 
 #### Execution Chronology:
