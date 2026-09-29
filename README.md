@@ -21,25 +21,28 @@ Following steps are performed during execution:
 1. Workflow is triggered automatically by commands like git push or PR merge etc.
 2. Job is picked up by HTTPS poll of self-hosted runner.
 3. Source code is checked out over https by runner in a temporary directory on Azure VM (where actinos-runner is hosted).
-4. Credentials are delivered as package over HTTPS. 
+4. Credentials are delivered as package over HTTPS only if GitHub secrets is used. For managed identity, database credentials are tied with the VM.
 5. Runner uses Liquibase configuration to deploy database change sets to target DB server using private connection.
 
 #### Execution Chronology for Azure Pipeline:
 Following steps are performed during execution:
 1. Events like git push, git commit etc. generates a webhook.
 2. The event is delivered to Azure DevOps automatically.
-3. Job is created and picked up by either Azure-hosted or self-hosted agent pool.
+3. Job is created, queued and then picked up by either Azure-hosted or self-hosted agent pool depending on pool configuration.
+4. Database credentials are retrieved from managed identity configuration.
+5. Agent uses Liquibase to deploy database changes to target DB server using private connection.
 
 ## Environment Setup
 #### Pre-requisite:
-There are some pre-requisites to implement Database Change Management using Azure Database for PostgreSQL, GitHub Actions and Liquibase tool. Following Azure resources should be ready before starting with the remaining steps of this document.
-- Azure VNet with Public Subnet.
-- Azure Database for PostgreSQL deployed on public VNet.
+There are some pre-requisites to implement Database Change Management using Azure Database for PostgreSQL, Azure SQL Database,  GitHub Actions and Liquibase tool. Following Azure resources should be ready before starting with the remaining steps of this document.
+- Azure VNet with public/private Subnet.
+- Azure Database for PostgreSQL or Azure SQL Database deployed on public/private VNet.
+- Database user mapped to managed identity for self-hosted runner (GitHub actions workflow runner) or agent pool (Azure Pipeline) or service principal for managed agent pool (Azure Pipeline). 
 
 #### GitHub Repository:
 This repo will contain all SQL, Liquibase Changelog & Properties and GitHub Actions Workflow files. Following should be the structure of the folders and files inside of this repo:
 
-<img width="612" height="715" alt="image" src="https://github.com/user-attachments/assets/3fe393ff-da89-4a8c-8f5e-5fa0b1c6f019" />
+
 
 Root folder (the repository itself) should contain 3 directories and 1 file as mentioned below:
 - **postgres_changelog** - This folder will contain Liquibase changelog files written in Liquiase formatted SQL. It would contain PostgreSQL native SQL statements that have to be applied to database and their corresponding ROLLBACK statements along with "author" and "version number" as shown below:
