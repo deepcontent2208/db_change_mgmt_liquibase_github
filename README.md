@@ -57,7 +57,7 @@ Root folder (the repository itself) should contain 3 directories and 1 file as m
 
 <img width="1219" height="784" alt="image" src="https://github.com/user-attachments/assets/3ce08ca2-000f-4fd7-8c6e-0abba8f55f7c" />
 
-#### Azure VM for GitHub Runner, Liquibase & PSQL CLI:
+#### Azure VM for GitHub Runner, Azure Pipeline Agent, Liquibase, SQLCMD & PSQL CLI:
 Before configuring Azure VM, make sure you have Azure VNet with public subnet already provisioned.
 
 Launch an Azure VM in the public subnet above. VM should be created using following configuration 
@@ -72,9 +72,7 @@ Launch an Azure VM in the public subnet above. VM should be created using follow
 Keep everything as-is with their default values and press "Review + Create" and then "Create". Once created SSH into the VM using user and password provided in "Authenticantion type" while setting up VM. 
 
 Install following tools one-by-one:
-- **Install "psql" client for PostgreSQL** - Execute the commands mentioned below in sequence. The final command should show an output like this:
-  
-<img width="967" height="38" alt="image" src="https://github.com/user-attachments/assets/0d7831cb-54b8-4c86-91c2-0100c2e29abc" />
+- **Install "psql" client for PostgreSQL** - Execute the commands mentioned below in sequence. 
 
 ```
 sudo apt update
@@ -84,10 +82,9 @@ psql --version
 
 - **Install and setup GitHub runner** - Use GitHub repo, settings, actions, runners and new self-hosted runner options to get commands to install GitHub Actions Runner in Azure VM. Use "Runner image" as "Linux", copy the corresponding commands for "Download" and "Configure". Execute them sequentially in Azure VM. While configuring runner in VM, use "postgres-runner" in the option mentioned as "Enter any additional labels".
   
-<img width="2259" height="1235" alt="image" src="https://github.com/user-attachments/assets/43f4e410-359b-4f6f-8a2a-130db1ce03b3" />
+<img width="1865" height="929" alt="image" src="https://github.com/user-attachments/assets/4dd1cd95-6d27-4a73-be4a-251624b4fdfa" />
 
-
-<img width="1998" height="1193" alt="image" src="https://github.com/user-attachments/assets/f7c20a44-c72f-4246-87af-3b7634bb7cb2" />
+<img width="1751" height="1045" alt="image" src="https://github.com/user-attachments/assets/708673e0-75d8-47b6-9bf6-93c41c878aa8" />
 
 Use the following commands one-by-one to install GitHub Actions runner as service
 
@@ -99,8 +96,7 @@ sudo ./svc.sh status
 
 Once all the commands are executed go back to GitHub Repo -> Settings -> Actions -> Runners, you should the runner running as shown below:
 
-<img width="1666" height="372" alt="image" src="https://github.com/user-attachments/assets/583759de-db1c-458c-9f9e-1dceda226589" />
-
+<img width="2269" height="1083" alt="image" src="https://github.com/user-attachments/assets/0ed10c4d-12e5-4fdb-826b-d262f7635b35" />
 
 - **Install and configure Liquibase tool** - Liquibase is a database change management tool with proper version control, rollback and drift detection support. Liquibase tool has a pre-requisite of JDK, "openjdk" can be used for the same. 
 
