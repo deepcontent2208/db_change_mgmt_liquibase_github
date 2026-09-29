@@ -80,6 +80,14 @@ sudo apt install -y postgresql-client
 psql --version
 ```
 
+- **Install "psql" client for SQL Server** - Execute the commands mentioned below in sequence. 
+
+```
+sudo apt update
+sudo apt-get install sqlcmd
+
+```
+
 - **Install and setup GitHub runner** - Use GitHub repo, settings, actions, runners and new self-hosted runner options to get commands to install GitHub Actions Runner in Azure VM. Use "Runner image" as "Linux", copy the corresponding commands for "Download" and "Configure". Execute them sequentially in Azure VM. While configuring runner in VM, use "postgres-runner" in the option mentioned as "Enter any additional labels".
   
 <img width="1865" height="929" alt="image" src="https://github.com/user-attachments/assets/4dd1cd95-6d27-4a73-be4a-251624b4fdfa" />
@@ -96,7 +104,7 @@ sudo ./svc.sh status
 
 Once all the commands are executed go back to GitHub Repo -> Settings -> Actions -> Runners, you should the runner running as shown below:
 
-<img width="2269" height="1083" alt="image" src="https://github.com/user-attachments/assets/0ed10c4d-12e5-4fdb-826b-d262f7635b35" />
+<img width="1734" height="831" alt="image" src="https://github.com/user-attachments/assets/b249fa73-8516-4e00-8671-ea351a38ecc7" />
 
 - **Install and configure Liquibase tool** - Liquibase is a database change management tool with proper version control, rollback and drift detection support. Liquibase tool has a pre-requisite of JDK, "openjdk" can be used for the same. 
 
