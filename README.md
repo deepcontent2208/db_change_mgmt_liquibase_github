@@ -42,18 +42,20 @@ There are some pre-requisites to implement Database Change Management using Azur
 #### GitHub Repository:
 This repo will contain all SQL, Liquibase Changelog & Properties and GitHub Actions Workflow files. Following should be the structure of the folders and files inside of this repo:
 
-
+<img width="393" height="938" alt="image" src="https://github.com/user-attachments/assets/4713360e-95e7-40e9-8967-271f2ede879b" />
 
 Root folder (the repository itself) should contain 3 directories and 1 file as mentioned below:
 - **postgres_changelog** - This folder will contain Liquibase changelog files written in Liquiase formatted SQL. It would contain PostgreSQL native SQL statements that have to be applied to database and their corresponding ROLLBACK statements along with "author" and "version number" as shown below:
 
-<img width="1396" height="988" alt="image" src="https://github.com/user-attachments/assets/4cb8b3d6-85d6-4f4b-a967-6fa95aafe86d" />
+  <img width="843" height="988" alt="image" src="https://github.com/user-attachments/assets/8bbe7329-bfe3-401a-9678-a669339daa3c" />
 
-- **postgres_sql_scripts (optional)** - Individual SQL statements in changeset file stored separately for backup, fallback and tracking purposes.
+- **postgres_sql_scripts** & **mssql_sql_scripts** (optional) - Individual SQL statements in changeset file stored separately for backup, fallback and tracking purposes.
+- **mssql_changelog** - This folder contains Azure SQL Database native SQL statements written in Liquibase format. Each DDL execution should have an "author" and "version number" similar to postgres_chagelog.
 -  **.github/workflows** - Workflow scripts in YAML format for continuous integration, deployment, rollback and schema drift across multiple database environments.
--  **liquibase.properties** - Liquibase configuration file as shown below:
+-  **ado_pipeline_workflows** - Azure pipeline scripts in YAML format. 
+-  **postgres.liquibase.properties** & **mssql.liquibase.properties**- Liquibase configuration file as shown below:
 
-<img width="1310" height="945" alt="image" src="https://github.com/user-attachments/assets/d5a80ce8-adb7-47c8-a71a-fb56afaebf24" />
+<img width="1219" height="784" alt="image" src="https://github.com/user-attachments/assets/3ce08ca2-000f-4fd7-8c6e-0abba8f55f7c" />
 
 #### Azure VM for GitHub Runner, Liquibase & PSQL CLI:
 Before configuring Azure VM, make sure you have Azure VNet with public subnet already provisioned.
