@@ -80,7 +80,7 @@ sudo apt install -y postgresql-client
 psql --version
 ```
 
-- **Install "psql" client for SQL Server** - Execute the commands mentioned below in sequence. 
+- **Install "sqlcmd" client for SQL Server** - Execute the commands mentioned below in sequence. 
 
 ```
 sudo apt update
@@ -105,6 +105,16 @@ sudo ./svc.sh status
 Once all the commands are executed go back to GitHub Repo -> Settings -> Actions -> Runners, you should the runner running as shown below:
 
 <img width="1734" height="831" alt="image" src="https://github.com/user-attachments/assets/b249fa73-8516-4e00-8671-ea351a38ecc7" />
+
+- **Install and setup Azure pipeline agent** - Create a new project in Azure DevOps. Open the project and go to "Project settings". Select "Agent pools" and add a new pool. Select "Self-hosted" for agent to be set up in Azure VM created earlier. Open newly created agent pool and click on "New Agent", it will give agent configuration steps (based on Operating System) the have to be executed in the Azure VM 
+
+<img width="1351" height="428" alt="image" src="https://github.com/user-attachments/assets/23723212-8d46-4baf-89f7-cc819afc31aa" />
+
+<img width="1587" height="879" alt="image" src="https://github.com/user-attachments/assets/846e4fa6-a66e-4fa2-afe6-b6abb051bd48" />
+
+<img width="1653" height="945" alt="image" src="https://github.com/user-attachments/assets/8f491f19-2ee8-46e5-8020-2e8ece706037" />
+
+<img width="2276" height="1244" alt="image" src="https://github.com/user-attachments/assets/71f2d46e-1246-4a97-8532-a61d6a155e9d" />
 
 - **Install and configure Liquibase tool** - Liquibase is a database change management tool with proper version control, rollback and drift detection support. Liquibase tool has a pre-requisite of JDK, "openjdk" can be used for the same. 
 
