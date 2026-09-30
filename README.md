@@ -112,9 +112,10 @@ Once all the commands are executed go back to GitHub Repo -> Settings -> Actions
 
 <img width="1587" height="879" alt="image" src="https://github.com/user-attachments/assets/846e4fa6-a66e-4fa2-afe6-b6abb051bd48" />
 
-<img width="1653" height="945" alt="image" src="https://github.com/user-attachments/assets/8f491f19-2ee8-46e5-8020-2e8ece706037" />
+<img width="1850" height="1014" alt="image" src="https://github.com/user-attachments/assets/31dc8aa0-9d9c-43dc-a7b7-24374ab54a91" />
 
-<img width="2276" height="1244" alt="image" src="https://github.com/user-attachments/assets/71f2d46e-1246-4a97-8532-a61d6a155e9d" />
+<img width="1762" height="965" alt="image" src="https://github.com/user-attachments/assets/f957c655-e89e-4af6-89a1-225ec40dee70" />
+
 
 - **Install and configure Liquibase tool** - Liquibase is a database change management tool with proper version control, rollback and drift detection support. Liquibase tool has a pre-requisite of JDK, "openjdk" can be used for the same. 
 
