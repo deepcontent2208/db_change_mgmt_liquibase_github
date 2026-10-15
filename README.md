@@ -188,7 +188,10 @@ PROD_DB_USER
 ```
 
 #### Managed Identity 
-Enable "managed identity" for Azure VM where agent is hosted.
+Enable "managed identity" for Azure VM where agent is hosted. In the following picture, name of Azure VM is "db-vm". Go to "Security" to "Identity" and enable "System assigned" identity. Users can choose to use "User assigned" identity instead of "System assigned".
+
+<img width="2273" height="1132" alt="image" src="https://github.com/user-attachments/assets/314910a6-996b-45da-9673-d735a91efbf5" />
+
 
 
 
