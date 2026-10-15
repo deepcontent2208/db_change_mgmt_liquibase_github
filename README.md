@@ -194,6 +194,16 @@ Enable "managed identity" for Azure VM where agent is hosted. In the following p
 
 Note the "Object ID" highlighted above as it will be needed to create PostgreSQL user. Login to PostgreSQL as database admin and use the following command with pgaadauth_create_principal_with_oid function to create database user corresponding to Azure VM's managed identity.
 
+```
+SELECT * FROM pgaadauth_create_principal_with_oid(
+    'db-vm',
+    '<object-id>',
+    'service',
+    false,
+    false
+);
+```
+"db-vm" is the name of Azure VM containing managed identity.
 
 ### Execute Automated Database (PostgreSQL, MS SQL, Azure Database for PostgreSQL, Azure SQL Database, Azure SQL MI etc.) Change Management:
 To execute database changes using automatic change management follow the steps below.
@@ -204,21 +214,17 @@ To execute database changes using automatic change management follow the steps b
 5. Select "PostgreSQL Database Rollback (Liquibase Rollback CD)" to rollback changes that have been deployed in Azure PG.
 6. Select "PostgreSQL Database Schema Drift (Liquibase CI)" to check schema difference between two environments in Azure PG.
 
-<img width="2257" height="1013" alt="image" src="https://github.com/user-attachments/assets/18f67b63-d485-43d8-b5d9-b1298542101c" />
 
 **Input for "PostgreSQL Validate Changelog CI (Liquibase Validate)":**
 - Target environment: Select "dev", "qa" or "prod" based on your requirement.
-
 
 **Input for "PostgreSQL Database Deployment (Liquibase CD)":**
 - Target environment: Select "dev", "qa" or "prod" based on your requirement.
 - Tag: "Extremely" important to track changes and perform Rollback. Provide the "tag" or "version" for this deployment. Rollback cannot be done without tags.
 
-
 **Input for "PostgreSQL Database Rollback (Liquibase Rollback CD)":**
 - Target environment: Select "dev", "qa" or "prod" based on your requirement.
 - Tag: Provide the "tag" or "version" to rollback to.
-
 
 **Input for "PostgreSQL Database Schema Drift (Liquibase CI)":**
 - Baseline environment: Source environment for comparison. Select "dev", "qa" or "prod" based on your requirement.
