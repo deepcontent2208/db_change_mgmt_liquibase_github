@@ -143,7 +143,7 @@ Download all resources from this GitHub repo. Copy all files from this repo to a
 ### Database Credentials:
 GitHub Secrets or Azure Managed Identity (recommended) can be used to handle database authentication and authorization.
 
-#### GitHub secrets 
+#### Database Credentials using GitHub secrets 
 Use following variables exactly as mentioned to setup database credentials. Name and case of variables should be exactly same, otherwise pipeline execution will fail.
 
 Database URL should use following syntax. Replace variable '<AZ_PG_ENDPOINT>' with your Azure PostgreSQL endpoint and '<AZ_PG_DB>' with your database name.
@@ -187,12 +187,12 @@ PROD_DB_URL
 PROD_DB_USER
 ```
 
-#### Managed Identity 
+#### Database Credentials using Azure Managed Identity 
 Enable "managed identity" for Azure VM where agent is hosted. In the following picture, name of Azure VM is "db-vm". Go to "Security" to "Identity" and enable "System assigned" identity. Users can choose to use "User assigned" identity instead of "System assigned".
 
-<img width="2273" height="1132" alt="image" src="https://github.com/user-attachments/assets/314910a6-996b-45da-9673-d735a91efbf5" />
+<img width="1590" height="798" alt="image" src="https://github.com/user-attachments/assets/3493aae9-d114-443f-97c3-d8fe335a391e" />
 
-
+Note the "Object ID" highlighted above as it will be needed to create PostgreSQL user. Login to PostgreSQL as database admin and use the following command with pgaadauth_create_principal_with_oid function to create database user corresponding to Azure VM's managed identity.
 
 
 ### Execute Automated Database (PostgreSQL, MS SQL, Azure Database for PostgreSQL, Azure SQL Database, Azure SQL MI etc.) Change Management:
@@ -209,24 +209,18 @@ To execute database changes using automatic change management follow the steps b
 **Input for "PostgreSQL Validate Changelog CI (Liquibase Validate)":**
 - Target environment: Select "dev", "qa" or "prod" based on your requirement.
 
-<img width="1718" height="880" alt="image" src="https://github.com/user-attachments/assets/0d575f03-a97c-4ca4-a126-27771084cda6" />
 
 **Input for "PostgreSQL Database Deployment (Liquibase CD)":**
 - Target environment: Select "dev", "qa" or "prod" based on your requirement.
 - Tag: "Extremely" important to track changes and perform Rollback. Provide the "tag" or "version" for this deployment. Rollback cannot be done without tags.
-
-<img width="1340" height="789" alt="image" src="https://github.com/user-attachments/assets/f4d60add-457f-4e23-b022-ea3eace12b44" />
 
 
 **Input for "PostgreSQL Database Rollback (Liquibase Rollback CD)":**
 - Target environment: Select "dev", "qa" or "prod" based on your requirement.
 - Tag: Provide the "tag" or "version" to rollback to.
 
-<img width="1349" height="799" alt="image" src="https://github.com/user-attachments/assets/2c6bd995-af3d-4f5e-8581-9ebf69931d99" />
-
 
 **Input for "PostgreSQL Database Schema Drift (Liquibase CI)":**
 - Baseline environment: Source environment for comparison. Select "dev", "qa" or "prod" based on your requirement.
 - Comparing environment: Target environment for comparison. Cannot be same as source. Select "dev", "qa" or "prod" based on your requirement.
 
-<img width="1354" height="792" alt="image" src="https://github.com/user-attachments/assets/13123115-4125-4f3e-bd87-10d22ad104e8" />
