@@ -17,6 +17,9 @@ This implementation architecture follows best practice of using same source code
 - Database Servers: Target database environment where SQLs have to be deployed.
 
 #### Execution Chronology for GitHub Workflow:
+
+<img width="1641" height="941" alt="image" src="https://github.com/user-attachments/assets/77f40972-f9a2-4cc5-a9e5-72a639f9bb6d" />
+
 Following steps are performed during execution:
 1. Workflow is triggered automatically by commands like git push or PR merge etc.
 2. Job is picked up by HTTPS poll of self-hosted runner.
@@ -135,16 +138,12 @@ liquibase --version
 
 ## Execution steps
 ### Resources:
-Download all resources from this GitHub repo. Copy the files (as shown below) in corresponding folders of your repo.
-
-<img width="883" height="883" alt="image" src="https://github.com/user-attachments/assets/9e2550af-4367-4cb6-93da-a374118ef322" />
+Download all resources from this GitHub repo. Copy all files from this repo to a corresponding folder in your repo.
 
 ### Database Credentials:
-Use GitHub Secrets to setup database credentials. 
+GitHub Secrets or Azure Managed Identity (recommended) can be used to handle database authentication and authorization.
 
-<img width="2252" height="1239" alt="image" src="https://github.com/user-attachments/assets/a5822259-4d42-4d38-8978-271a46842970" />
-
-
+#### GitHub secrets 
 Use following variables exactly as mentioned to setup database credentials. Name and case of variables should be exactly same, otherwise pipeline execution will fail.
 
 Database URL should use following syntax. Replace variable '<AZ_PG_ENDPOINT>' with your Azure PostgreSQL endpoint and '<AZ_PG_DB>' with your database name.
@@ -188,7 +187,12 @@ PROD_DB_URL
 PROD_DB_USER
 ```
 
-### Execute Automated Database Change Management:
+#### Managed Identity 
+Enable "managed identity" for Azure VM where agent is hosted.
+
+
+
+### Execute Automated Database (PostgreSQL, MS SQL, Azure Database for PostgreSQL, Azure SQL Database, Azure SQL MI etc.) Change Management:
 To execute database changes using automatic change management follow the steps below.
 1. Go to your repository.
 2. Go to "Actions".
