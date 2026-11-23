@@ -1,0 +1,92 @@
+name: PostgreSQL Database Change Validation (Liquibase CI Comparison)
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - qa
+          - prod
+
+      schema_name:
+        description: "Schema Name"
+        required: true
+        default: "public"
+        type: string
+  
+jobs:
+  deploy:
+    runs-on: [self-hosted]
+
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:       
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Get Managed Identity Credentials
+        run: |
+          PG_PWD=$(curl -s "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fossrdbms-aad.database.windows.net" -H Metadata:true | jq -r .access_token)
+          echo "::add-mask::$PG_PWD"
+          echo "LIQUIBASE_COMMAND_PASSWORD=$PG_PWD" >> "$GITHUB_ENV"
+          
+      
+      - name: Auto populate database connection parameters
+        id: get-host-dbname
+        run: |
+          ENV_NAME_UPPER=$(echo "${{ github.event.inputs.environment }}" | tr '[:lower:]' '[:upper:]')
+          
+          case "$ENV_NAME_UPPER" in
+            DEV)
+              echo "db_host=${{ secrets.DEV_DB_HOST }}" >> $GITHUB_OUTPUT
+              echo "db_name=${{ secrets.DEV_DB_NAME }}" >> $GITHUB_OUTPUT
+              echo "db_user=${{ secrets.DEV_DB_USER }}" >> $GITHUB_OUTPUT
+              # echo "db_pass=${{ secrets.DEV_DB_PASSWORD }}" >> $GITHUB_OUTPUT
+              ;;
+            QA)
+              echo "db_host=${{ secrets.QA_DB_HOST }}" >> $GITHUB_OUTPUT
+              echo "db_name=${{ secrets.QA_DB_NAME }}" >> $GITHUB_OUTPUT
+              echo "db_user=${{ secrets.QA_DB_USER }}" >> $GITHUB_OUTPUT
+              # echo "db_pass=${{ secrets.QA_DB_PASSWORD }}" >> $GITHUB_OUTPUT
+              ;;
+            PROD)
+              echo "db_host=${{ secrets.PROD_DB_HOST }}" >> $GITHUB_OUTPUT
+              echo "db_name=${{ secrets.PROD_DB_NAME }}" >> $GITHUB_OUTPUT
+              echo "db_user=${{ secrets.PROD_DB_USER }}" >> $GITHUB_OUTPUT
+              # echo "db_pass=${{ secrets.PROD_DB_PASSWORD }}" >> $GITHUB_OUTPUT
+              ;;
+          esac
+          
+      - name: Verify Database Connection Details
+        run: |
+          echo "Target environment: ${{ github.event.inputs.environment }}"
+
+      - name: Setup Liquibase
+        uses: liquibase/setup-liquibase@v3
+        with: 
+          version: '4.33.0'
+          edition: "community"
+
+      - name: Review database changes before deploying (liquibase update-sql Command)
+        run: |
+          liquibase update-sql \
+            --changelog-file=postgres_changelog/postgresdb.changelog.sql \
+            --url="jdbc:postgresql://${{ steps.get-host-dbname.outputs.db_host }}:5432/${{ steps.get-host-dbname.outputs.db_name }}?sslmode=require" \
+            --username="${{ steps.get-host-dbname.outputs.db_user }}" \
+            --output-file=pending-changes.sql \
+            -Dschema_name="${{ github.event.inputs.schema_name }}"
+
+      - name: Get current date
+        id: get_date
+        run: echo "value=$(date -u +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
+            
+      - name: Save SQL review
+        uses: actions/upload-artifact@v4
+        with:
+          name: pending-changes-${{ inputs.environment }}-${{ steps.get_date.outputs.value }}
+          path: pending-changes.sql
