@@ -1,0 +1,109 @@
+name: SQL Server Database Change Validation (Liquibase CI Comparison)
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - qa
+          - prod
+
+jobs:
+  deploy:
+    runs-on: [self-hosted]
+
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:  
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Get Managed Identity Credentials
+        run: |
+          MSSQL_PWD=$(curl -s "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fossrdbms-aad.database.windows.net" -H Metadata:true | jq -r .access_token)
+          echo "::add-mask::$MSSQL_PWD"
+          # echo "LIQUIBASE_COMMAND_PASSWORD=$MSSQL_PWD" >> "$GITHUB_ENV"
+
+      - name: Auto populate database connection parameters
+        id: get-credentials
+        run: |
+          ENV_NAME_UPPER=$(echo "${{ github.event.inputs.environment }}" | tr '[:lower:]' '[:upper:]')
+          
+          case "$ENV_NAME_UPPER" in
+            DEV)
+              echo "db_host=${{ secrets.MSSQL_DEV_DB_HOST }}" >> $GITHUB_OUTPUT
+              echo "db_name=${{ secrets.MSSQL_DEV_DB_NAME }}" >> $GITHUB_OUTPUT
+              echo "db_user=${{ secrets.MSSQL_DEV_DB_USER }}" >> $GITHUB_OUTPUT
+              # echo "db_pass=${{ secrets.MSSQL_DEV_DB_PASSWORD }}" >> $GITHUB_OUTPUT
+              echo "mssql_db_schema=${{ secrets.MSSQL_DEV_DB_SCHEMA }}" >> $GITHUB_OUTPUT
+              ;;
+            QA)
+              echo "db_host=${{ secrets.MSSQL_QA_DB_HOST }}" >> $GITHUB_OUTPUT
+              echo "db_name=${{ secrets.MSSQL_QA_DB_NAME }}" >> $GITHUB_OUTPUT
+              echo "db_user=${{ secrets.MSSQL_QA_DB_USER }}" >> $GITHUB_OUTPUT
+              # echo "db_pass=${{ secrets.MSSQL_QA_DB_PASSWORD }}" >> $GITHUB_OUTPUT
+              echo "mssql_db_schema=${{ secrets.MSSQL_QA_DB_SCHEMA }}" >> $GITHUB_OUTPUT
+              ;;
+            PROD)
+              echo "db_host=${{ secrets.MSSQL_PROD_DB_HOST }}" >> $GITHUB_OUTPUT
+              echo "db_name=${{ secrets.MSSQL_PROD_DB_NAME }}" >> $GITHUB_OUTPUT
+              echo "db_user=${{ secrets.MSSQL_PROD_DB_USER }}" >> $GITHUB_OUTPUT
+              # echo "db_pass=${{ secrets.MSSQL_PROD_DB_PASSWORD }}" >> $GITHUB_OUTPUT
+              echo "mssql_db_schema=${{ secrets.MSSQL_PROD_DB_SCHEMA }}" >> $GITHUB_OUTPUT
+              ;;
+          esac
+          
+          
+      - name: Verify Database Connection Details
+        run: |
+          echo "Target environment: ${{ github.event.inputs.environment }}"
+      
+      - name: Check Liquibase Changes Log Validity (liquibase validate Command)
+        run: |
+          liquibase validate \
+            --defaults-file=mssql.liquibase.properties \
+            --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
+            --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
+            --changelog-file=mssql_changelog/sqldb.changelog.sql \
+            --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};authentication=ActiveDirectoryManagedIdentity;encrypt=true;trustServerCertificate=true;" \
+            -Dschema_name=${{ steps.get-credentials.outputs.mssql_db_schema }}
+      
+      - name: Database Pre-check (liquibase validate Command)
+        run: | 
+          liquibase status --verbose \
+            --defaults-file=mssql.liquibase.properties \
+            --default-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
+            --liquibase-schema-name="${{ steps.get-credentials.outputs.mssql_db_schema }}" \
+            --changelog-file=mssql_changelog/sqldb.changelog.sql \
+            --url="jdbc:sqlserver://${{ steps.get-credentials.outputs.db_host }}:1433;databaseName=${{ steps.get-credentials.outputs.db_name }};authentication=ActiveDirectoryManagedIdentity;encrypt=true;trustServerCertificate=true;" \
+            -Dschema_name=${{ steps.get-credentials.outputs.mssql_db_schema }}
+
+      - name: Review database changes before deploying (liquibase update-sql Command)
+        shell: bash
+        run: |
+          liquibase update-sql \
+            --defaults-file=mssql.liquibase.properties \
+            --default-schema-name="$DB_SCHEMA" \
+            --liquibase-schema-name="$DB_SCHEMA" \
+            --changelog-file=mssql_changelog/sqldb.changelog.sql \
+            --url="jdbc:sqlserver://${DB_HOST}:1433;databaseName=${DB_NAME};authentication=ActiveDirectoryManagedIdentity;encrypt=true;trustServerCertificate=true;" \
+            --output-file=pending-changes.sql \
+            -Dschema_name="$DB_SCHEMA"
+
+      - name: Get Current Date
+        id: date
+        shell: bash
+        run: echo "value=$(date -u +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
+
+      - name: Save SQL Preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: mssql-pending-changes-${{ inputs.environment }}-${{ steps.date.outputs.value }}
+          path: mssql-pending-changes.sql
+
+      
