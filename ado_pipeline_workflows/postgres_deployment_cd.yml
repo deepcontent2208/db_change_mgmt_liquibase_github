@@ -1,6 +1,9 @@
 trigger: none
 pr: none
 
+variables:
+- group: spn_mapping
+
 parameters:
 - name: environment
   displayName: "Target environment"
@@ -21,10 +24,10 @@ parameters:
   type: string
   default: 
 
-- name: db_user
-  displayName: "Database user"
-  type: string
-  default: postgres
+# - name: db_user
+#   displayName: "Database user"
+#   type: string
+#   default: postgres
 
 jobs:
 - job: PostgreSQLDatabaseDeployment
@@ -40,6 +43,24 @@ jobs:
   steps:
   - checkout: self
     displayName: "Checkout Repository"
+
+  - bash: |
+      echo "----- Git Commit Information -----"
+      COMMIT_AUTHOR_NAME=$(git show -s --format='%an' HEAD)
+      COMMIT_AUTHOR_EMAIL=$(git show -s --format='%ae' HEAD)
+      COMMITTER_NAME=$(git show -s --format='%cn' HEAD)
+      COMMITTER_EMAIL=$(git show -s --format='%ce' HEAD)
+
+      commit_user_name="${COMMIT_AUTHOR_NAME^^}"
+      client_id=$(deepcontent2208clientid) 
+      db_user=$(deepcontent2208dbuser)
+      echo "client id: " $client_id
+      echo "database user: " $db_user
+      echo "##vso[task.setvariable variable=db_user;isOutput=true;isSecret=false]$db_user"
+      echo "##vso[task.setvariable variable=client_id;isOutput=true;isSecret=false]$client_id"
+
+    name: GetDbUser
+    displayName: "Git Operation Triggered User"
 
   # =========================================================
   # Generate rollback tag
@@ -90,19 +111,16 @@ jobs:
         DEV)
           echo "##vso[task.setvariable variable=db_host;isOutput=true]${{ parameters.db_host }}"
           echo "##vso[task.setvariable variable=db_name;isOutput=true]${{ parameters.db_name }}"
-          echo "##vso[task.setvariable variable=db_user;isOutput=true]${{ parameters.db_user }}"
           ;;
 
         QA)
           echo "##vso[task.setvariable variable=db_host;isOutput=true]${{ parameters.db_host }}"
           echo "##vso[task.setvariable variable=db_name;isOutput=true]${{ parameters.db_name }}"
-          echo "##vso[task.setvariable variable=db_user;isOutput=true]${{ parameters.db_user }}"
           ;;
 
         PROD)
           echo "##vso[task.setvariable variable=db_host;isOutput=true]${{ parameters.db_host }}"
           echo "##vso[task.setvariable variable=db_name;isOutput=true]${{ parameters.db_name }}"
-          echo "##vso[task.setvariable variable=db_user;isOutput=true]${{ parameters.db_user }}"
           ;;
 
         *)
@@ -122,7 +140,7 @@ jobs:
       echo "Target environment: ${{ parameters.environment }}"
       echo "Database host: $(GetDatabaseDetails.db_host)"
       echo "Database name: $(GetDatabaseDetails.db_name)"
-      echo "Database user: $(GetDatabaseDetails.db_user)"
+      echo "Database user: $(GetDbUser.db_user)"
     displayName: "Verify Database Connection Details"
 
   # =========================================================
@@ -159,10 +177,10 @@ jobs:
       liquibase validate \
         --changelog-file=postgres_changelog/postgresdb.changelog.sql \
         --url="jdbc:postgresql://$(GetDatabaseDetails.db_host):5432/$(GetDatabaseDetails.db_name)?sslmode=require" \
-        --username="$(GetDatabaseDetails.db_user)"
+        --username="$(GetDbUser.db_user)"
     displayName: "Check Liquibase Change Log Validity"
     env:
-      LIQUIBASE_COMMAND_PASSWORD: $(LIQUIBASE_COMMAND_PASSWORD)
+      LIQUIBASE_COMMAND_PASSWORD: $(GeneratePGToken.LIQUIBASE_COMMAND_PASSWORD)
 
 
   # =========================================================
@@ -172,10 +190,10 @@ jobs:
       liquibase status --verbose \
         --changelog-file=postgres_changelog/postgresdb.changelog.sql \
         --url="jdbc:postgresql://$(GetDatabaseDetails.db_host):5432/$(GetDatabaseDetails.db_name)?sslmode=require" \
-        --username="$(GetDatabaseDetails.db_user)"
+        --username="$(GetDbUser.db_user)"
     displayName: "Database Pre-check"
     env:
-      LIQUIBASE_COMMAND_PASSWORD: $(LIQUIBASE_COMMAND_PASSWORD)
+      LIQUIBASE_COMMAND_PASSWORD: $(GeneratePGToken.LIQUIBASE_COMMAND_PASSWORD)
 
 
   # =========================================================
@@ -184,12 +202,12 @@ jobs:
   - bash: |
       liquibase snapshot \
         --url="jdbc:postgresql://$(GetDatabaseDetails.db_host):5432/$(GetDatabaseDetails.db_name)?sslmode=require" \
-        --username="$(GetDatabaseDetails.db_user)" \
+        --username="$(GetDbUser.db_user)" \
         --snapshot-format=json \
         --output-file="pre_deploy_snapshot_$(GetDatabaseDetails.db_name).json"
     displayName: "Capture Pre-deployment Schema State"
     env:
-      LIQUIBASE_COMMAND_PASSWORD: $(LIQUIBASE_COMMAND_PASSWORD)
+      LIQUIBASE_COMMAND_PASSWORD: $(GeneratePGToken.LIQUIBASE_COMMAND_PASSWORD)
 
 
   # =========================================================
@@ -199,10 +217,10 @@ jobs:
       liquibase update \
         --changelog-file=postgres_changelog/postgresdb.changelog.sql \
         --url="jdbc:postgresql://$(GetDatabaseDetails.db_host):5432/$(GetDatabaseDetails.db_name)?sslmode=require" \
-        --username="$(GetDatabaseDetails.db_user)"
+        --username="$(GetDbUser.db_user)"
     displayName: "Apply Database Changes"
     env:
-      LIQUIBASE_COMMAND_PASSWORD: $(LIQUIBASE_COMMAND_PASSWORD)
+      LIQUIBASE_COMMAND_PASSWORD: $(GeneratePGToken.LIQUIBASE_COMMAND_PASSWORD)
 
 
   # =========================================================
@@ -213,11 +231,11 @@ jobs:
 
       liquibase tag \
         --url="jdbc:postgresql://$(GetDatabaseDetails.db_host):5432/$(GetDatabaseDetails.db_name)?sslmode=require" \
-        --username="$(GetDatabaseDetails.db_user)" \
+        --username="$(GetDbUser.db_user)" \
         --tag="$(GenerateRollbackTag.rollback_tag)"
     displayName: "Tag Database Changes"
     env:
-      LIQUIBASE_COMMAND_PASSWORD: $(LIQUIBASE_COMMAND_PASSWORD)
+      LIQUIBASE_COMMAND_PASSWORD: $(GeneratePGToken.LIQUIBASE_COMMAND_PASSWORD)
 
 
   # =========================================================
@@ -226,12 +244,12 @@ jobs:
   - bash: |
       liquibase snapshot \
         --url="jdbc:postgresql://$(GetDatabaseDetails.db_host):5432/$(GetDatabaseDetails.db_name)?sslmode=require" \
-        --username="$(GetDatabaseDetails.db_user)" \
+        --username="$(GetDbUser.db_user)" \
         --snapshot-format=json \
         --output-file="post_deploy_snapshot_$(GetDatabaseDetails.db_name).json"
     displayName: "Capture Post-deployment Schema State"
     env:
-      LIQUIBASE_COMMAND_PASSWORD: $(LIQUIBASE_COMMAND_PASSWORD)
+      LIQUIBASE_COMMAND_PASSWORD: $(GeneratePGToken.LIQUIBASE_COMMAND_PASSWORD)
 
 
   # =========================================================
@@ -241,7 +259,7 @@ jobs:
       liquibase diff \
         --reference-url="offline:postgresql?snapshot=pre_deploy_snapshot_$(GetDatabaseDetails.db_name).json" \
         --url="jdbc:postgresql://$(GetDatabaseDetails.db_host):5432/$(GetDatabaseDetails.db_name)?sslmode=require" \
-        --username="$(GetDatabaseDetails.db_user)"
+        --username="$(GetDbUser.db_user)"
     displayName: "Check Database Schema Difference Before & After Deployment"
     env:
-      LIQUIBASE_COMMAND_PASSWORD: $(LIQUIBASE_COMMAND_PASSWORD)
+      LIQUIBASE_COMMAND_PASSWORD: $(GeneratePGToken.LIQUIBASE_COMMAND_PASSWORD)
